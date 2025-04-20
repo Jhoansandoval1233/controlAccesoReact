@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import InputField from './ui/InputField';
 import SelectDropdown from './ui/SelectDropdown';
 import AlertComponent from './AlertComponent';
+import Button from './ui/Button';
+import Card from './ui/Card';
 
 const RegistrosFormComponent = () => {
   const [documento, setDocumento] = useState('');
@@ -51,81 +53,81 @@ const RegistrosFormComponent = () => {
 
   return (
     <div className="container mt-4" style={{ maxWidth: '600px' }}>
-      <h4 className="mb-4 text-center">Formulario de Registros</h4>
+      <Card title="Formulario de registros">
+        {alert.show && <AlertComponent type={alert.type} message={alert.message} />}
 
-      {alert.show && <AlertComponent type={alert.type} message={alert.message} />}
-
-      <form onSubmit={handleSubmit}>
-        <InputField
-          label="Documento"
-          type="text"
-          placeholder="Número de documento"
-          value={documento}
-          onChange={(e) => setDocumento(e.target.value)}
-        />
-
-        <SelectDropdown
-          label="Tipo de acceso"
-          options={[
-            { value: 'entrada', label: 'Entrada' },
-            { value: 'salida', label: 'Salida' },
-          ]}
-          value={tipoAcceso}
-          onChange={(e) => setTipoAcceso(e.target.value)}
-        />
-
-        {/* Check vehiculo */}
-        <div className="form-check mt-3">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="vehiculoCheck"
-            checked={incluyeVehiculo}
-            onChange={(e) => setIncluyeVehiculo(e.target.checked)}
-          />
-          <label className="form-check-label" htmlFor="vehiculoCheck">
-            ¿Incluye vehículo?
-          </label>
-        </div>
-
-        {incluyeVehiculo && (
+        <form onSubmit={handleSubmit}>
           <InputField
-            label="Placa del Vehículo"
+            label="Número de documento"
             type="text"
-            placeholder="Ej: ABC123"
-            value={placaVehiculo}
-            onChange={(e) => setPlacaVehiculo(e.target.value)}
+            placeholder="Ej: 1234567890"
+            value={documento}
+            onChange={(e) => setDocumento(e.target.value)}
           />
-        )}
 
-        {/* Check elemento */}
-        <div className="form-check mt-2">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="elementoCheck"
-            checked={incluyeElemento}
-            onChange={(e) => setIncluyeElemento(e.target.checked)}
+          <SelectDropdown
+            label="Tipo de acceso"
+            options={[
+              { value: 'entrada', label: 'Entrada' },
+              { value: 'salida', label: 'Salida' },
+            ]}
+            value={tipoAcceso}
+            onChange={(e) => setTipoAcceso(e.target.value)}
           />
-          <label className="form-check-label" htmlFor="elementoCheck">
-            ¿Incluye elemento?
-          </label>
-        </div>
 
-        {incluyeElemento && (
-          <InputField
-            label="Descripción del Elemento"
-            type="text"
-            placeholder="Ej: Portátil, caja de herramientas, etc."
-            value={descripcionElemento}
-            onChange={(e) => setDescripcionElemento(e.target.value)}
-          />
-        )}
+          {/* Check vehiculo */}
+          <div className="form-check mt-3">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="vehiculoCheck"
+              checked={incluyeVehiculo}
+              onChange={(e) => setIncluyeVehiculo(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="vehiculoCheck">
+              Registrar vehículo
+            </label>
+          </div>
 
-        <button type="submit" className="btn btn-success w-100 mt-4">
-          Guardar Registro
-        </button>
-      </form>
+          {incluyeVehiculo && (
+            <InputField
+              label="Placa del Vehículo"
+              type="text"
+              placeholder="Ej: ABC123"
+              value={placaVehiculo}
+              onChange={(e) => setPlacaVehiculo(e.target.value)}
+            />
+          )}
+
+          {/* Check elemento */}
+          <div className="form-check mt-2">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="elementoCheck"
+              checked={incluyeElemento}
+              onChange={(e) => setIncluyeElemento(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="elementoCheck">
+              Registrar elemento
+            </label>
+          </div>
+
+          {incluyeElemento && (
+            <InputField
+              label="Descripción del Elemento"
+              type="text"
+              placeholder="Ej: Portátil, caja de herramientas, etc."
+              value={descripcionElemento}
+              onChange={(e) => setDescripcionElemento(e.target.value)}
+            />
+          )}
+
+          <Button type="submit" variant="success">
+            Guardar Registro
+          </Button>
+        </form>
+      </Card>
     </div>
   );
 };

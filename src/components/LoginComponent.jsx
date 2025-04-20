@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InputField from './ui/InputField';
 import AlertComponent from './AlertComponent';
+import Button from './ui/Button';
+import Card from './ui/Card';
 
 const LoginComponent = () => {
   const [email, setEmail] = useState('');
@@ -36,33 +38,42 @@ const LoginComponent = () => {
 
   return (
     <div className="container mt-5" style={{ maxWidth: '400px' }}>
-      <h3 className="text-center mb-4">Iniciar Sesión</h3>
+      <Card title="Iniciar sesión">
 
-      {alert.show && (
-        <AlertComponent type={alert.type} message={alert.message} />
-      )}
+        {alert.show && (
+          <AlertComponent type={alert.type} message={alert.message} />
+        )}
 
-      <form onSubmit={handleSubmit}>
-        <InputField
-          label="Correo electrónico"
-          type="email"
-          placeholder="correo@sena.edu.co"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <form onSubmit={handleSubmit}>
+          <InputField
+            label="Correo electrónico"
+            type="email"
+            placeholder="correo@sena.edu.co"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-        <InputField
-          label="Contraseña"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <InputField
+            label="Contraseña"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <button type="submit" className="btn btn-primary w-100 mt-3">
-          Iniciar sesión
-        </button>
-      </form>
+          <Button type="submit" variant="primary">
+            Iniciar sesión
+          </Button>
+          <div className="d-flex justify-content-between mt-3">
+            <a href="/forgot-password" className="text-decoration-none">
+              ¿Olvidó contraseña?
+            </a>
+            <a href="/register" className="text-decoration-none">
+              Registrarse
+            </a>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 };
