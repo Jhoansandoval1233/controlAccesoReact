@@ -1,0 +1,199 @@
+/* Variables de colores modernos */
+:root {
+  --primary-color: #2563eb;    /* Azul moderno */
+  --secondary-color: #1e293b;  /* Azul oscuro */
+  --background-color: #f8fafc; /* Gris muy claro */
+  --text-color: #334155;       /* Gris azulado */
+  --accent-color: #3b82f6;     /* Azul acento */
+}
+
+/* Estilos generales para la aplicación */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text-color);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Altura mínima del viewport */
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto; /* El contenido principal se expandirá */
+}
+
+.container {
+  flex: 1 0 auto; /* Asegura que el contenido empuje el footer hacia abajo */
+}
+
+.footer {
+  flex-shrink: 0; /* Evita que el footer se encoja */
+  background-color: var(--secondary-color);
+  color: #fff;
+  padding: 1.5rem 0;
+  text-align: center;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-top: auto; /* Empuja el footer hacia abajo */
+}
+
+/* Estilos para enlaces en el footer */
+.footer a {
+  color: #fff;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.footer a:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
+/* Navbar Styles */
+.custom-navbar {
+  background-color: var(--secondary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem 0;
+}
+
+.navbar-brand {
+  color: white !important;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: white !important;
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  color: white !important;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.logout-btn {
+  margin: 0 !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Button Styles */
+.btn {
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color);
+}
+
+.bg-success {
+  background-color: #10B981;
+}
+
+.bg-primary:hover {
+  background-color: #1D4ED8;
+}
+
+.bg-secondary:hover {
+  background-color: #0F172A;
+}
+
+.bg-success:hover {
+  background-color: #059669;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Consultas Component Styles */
+.search-input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.custom-table {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table-header {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.table-header th {
+  padding: 1rem;
+  font-weight: 500;
+  border-bottom: none;
+}
+
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.table td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
