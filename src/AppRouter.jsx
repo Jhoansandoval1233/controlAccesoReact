@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavbarComponent from './components/NavbarComponent';
 import LoginComponent from './components/LoginComponent';
@@ -10,7 +10,20 @@ import ConsultasComponent from './components/ConsultasComponent';
 import FooterComponent from './components/FooterComponent';
 
 const AppRouter = () => {
-  const isAuthenticated = localStorage.getItem('authenticated') === 'true'; 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const auth = localStorage.getItem('authenticated') === 'true';
+      setIsAuthenticated(auth);
+    };
+
+    checkAuth(); // Ejecuta al montar
+
+    window.addEventListener('storage', checkAuth); // Escucha evento personalizado
+
+    return () => window.removeEventListener('storage', checkAuth); // Limpieza
+  }, []);
 
   return (
     <Router>
