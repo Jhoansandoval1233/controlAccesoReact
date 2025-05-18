@@ -2,33 +2,33 @@ const db = require('../config/db');
 
 const Elemento = {
   getAll: (callback) => {
-    db.query('SELECT * FROM elemento', callback);
+    db.query('SELECT * FROM elementos', callback);
   },
 
   getById: (id, callback) => {
-    db.query('SELECT * FROM elemento WHERE id_elemento = ?', [id], callback);
+    db.query('SELECT * FROM elementos WHERE id = ?', [id], callback);
   },
 
   create: (data, callback) => {
-    const { nombre, descripcion, serial, id_persona } = data;
+    const { tipo_elemento, serial, observaciones } = data; 
     db.query(
-      'INSERT INTO elemento (nombre, descripcion, serial, id_persona) VALUES (?, ?, ?, ?)',
-      [nombre, descripcion, serial, id_persona],
+      'INSERT INTO elementos (tipo_elemento, serial, observaciones) VALUES (?, ?, ?)',
+      [tipo_elemento, serial, observaciones],
       callback
     );
   },
 
   update: (id, data, callback) => {
-    const { nombre, descripcion, serial, id_persona } = data;
+    const { tipo_elemento, serial, observaciones } = data; 
     db.query(
-      'UPDATE elemento SET nombre = ?, descripcion = ?, serial = ?, id_persona = ? WHERE id_elemento = ?',
-      [nombre, descripcion, serial, id_persona, id],
+      'UPDATE elementos SET tipo_elemento = ?, serial = ?, observaciones = ? WHERE id = ?',
+      [tipo_elemento, serial, observaciones, id],
       callback
     );
   },
 
   delete: (id, callback) => {
-    db.query('DELETE FROM elemento WHERE id_elemento = ?', [id], callback);
+    db.query('DELETE FROM elementos WHERE id = ?', [id], callback);
   }
 };
 

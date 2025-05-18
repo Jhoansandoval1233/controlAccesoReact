@@ -1,35 +1,51 @@
 const db = require('../config/db');
 
 const Vehiculo = {
-  getAll: (callback) => {
-    db.query('SELECT * FROM vehiculo', callback);
-  },
+    getAll: (callback) => {
+        db.query('SELECT * FROM vehiculos', callback);
+    },
 
-  getById: (id, callback) => {
-    db.query('SELECT * FROM vehiculo WHERE id_vehiculo = ?', [id], callback);
-  },
+    getById: (id, callback) => {
+        db.query('SELECT * FROM vehiculos WHERE id = ?', [id], callback);
+    },
 
-  create: (data, callback) => {
-    const { placa, tipo, id_persona } = data;
-    db.query(
-      'INSERT INTO vehiculo (placa, tipo, id_persona) VALUES (?, ?, ?)',
-      [placa, tipo, id_persona],
-      callback
-    );
-  },
+    create: (data, callback) => {
+        const { placa, tipo_vehiculo } = data;
 
-  update: (id, data, callback) => {
-    const { placa, tipo, id_persona } = data;
-    db.query(
-      'UPDATE vehiculo SET placa = ?, tipo = ?, id_persona = ? WHERE id_vehiculo = ?',
-      [placa, tipo, id_persona, id],
-      callback
-    );
-  },
+        // Validar que los campos requeridos existan
+        if (!placa || !tipo_vehiculo) {
+            const error = new Error('Placa y tipo_vehiculo son requeridos');
+            return callback(error);
+        }
 
-  delete: (id, callback) => {
-    db.query('DELETE FROM vehiculo WHERE id_vehiculo = ?', [id], callback);
-  }
+        const sql = 'INSERT INTO vehiculos (placa, tipo_vehiculo) VALUES (?, ?)';
+        const values = [
+            placa.substring(0, 10), // Asegurar máximo 10 caracteres
+            tipo_vehiculo
+        ];
+
+        console.log('SQL Query:', sql);
+        console.log('Values:', values);
+
+        db.query(sql, values, callback);
+    },
+
+    update: (id, data, callback) => {
+        const { placa, tipo_vehiculo } = data;
+
+        const sql = 'UPDATE vehiculos SET placa = ?, tipo_vehiculo = ? WHERE id = ?';
+        const values = [
+            placa.substring(0, 10), // Asegurar máximo 10 caracteres
+            tipo_vehiculo,
+            id
+        ];
+
+        db.query(sql, values, callback);
+    },
+
+    delete: (id, callback) => {
+        db.query('DELETE FROM vehiculos WHERE id = ?', [id], callback);
+    }
 };
 
 module.exports = Vehiculo;

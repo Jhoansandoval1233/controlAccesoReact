@@ -1,8 +1,16 @@
+require('dotenv').config();
 const app = require('./app');
-console.log(app); //
-const PORT = 4000;
 
+const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
+
+// Manejo de errores no capturados
+process.on('unhandledRejection', (err) => {
+  console.error('Error no manejado:', err);
+  server.close(() => {
+    process.exit(1);
+  });
 });
