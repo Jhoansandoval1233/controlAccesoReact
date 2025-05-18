@@ -1,5 +1,4 @@
-const ControlAcceso = require('../models/controlAccesoModels'); // Asegúrate de tener la ruta correcta
-
+const ControlAcceso = require('../models/controlAccesoModels'); 
 const controlAccesoController = {
   getAll: (req, res) => {
     ControlAcceso.getAll((err, result) => {

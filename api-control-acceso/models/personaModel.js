@@ -20,7 +20,7 @@ const Persona = {
                 correo, 
                 tipo_rol,
                 activo
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;  // Note: 8 placeholders but only 7 values
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;  
     
         const values = [
             data.nombre,
@@ -30,7 +30,7 @@ const Persona = {
             data.telefono || null,
             data.correo || null,
             data.tipo_rol,
-            1  // Add the missing value for 'activo'
+            1  // Asumiendo que 'activo' es un campo booleano y por defecto es 1 (activo)
         ];
         
         console.log('SQL Values:', values);

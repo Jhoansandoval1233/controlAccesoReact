@@ -23,7 +23,7 @@ exports.getById = (req, res) => {
 exports.create = (req, res) => {
     console.log('Request body:', req.body);
 
-    // Check if body is empty
+    // Validar si el cuerpo de la solicitud está vacío
     if (!req.body || Object.keys(req.body).length === 0) {
         return res.status(400).json({
             mensaje: 'El cuerpo de la solicitud está vacío'
@@ -32,16 +32,19 @@ exports.create = (req, res) => {
 
     const { nombre, apellido, tipo_documento, numero_documento, telefono, correo, tipo_rol } = req.body;
 
-    // Log received values for debugging
-    console.log('Valores recibidos:', {
-        nombre,
-        apellido,
-        tipo_documento,
-        numero_documento,
-        telefono,
-        correo,
-        tipo_rol
-    });
+    // Validar campos requeridos
+    if (!nombre || !apellido || !tipo_documento || !numero_documento || !tipo_rol) {
+        return res.status(400).json({
+            mensaje: 'Campos requeridos faltantes',
+            requeridos: {
+                nombre: !nombre,
+                apellido: !apellido,
+                tipo_documento: !tipo_documento,
+                numero_documento: !numero_documento,
+                tipo_rol: !tipo_rol
+            }
+        });
+    }
 
     // Validar tipos de documento permitidos
     const tiposDocumentoValidos = ['CC', 'TI', 'Pasaporte'];

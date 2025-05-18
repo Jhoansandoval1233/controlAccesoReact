@@ -19,7 +19,7 @@ exports.getUsuarioById = (req, res) => {
 exports.createUsuario = (req, res) => {
     console.log('Request body:', req.body);
 
-    // Check if body is empty
+    // Validar si el cuerpo de la solicitud está vacío
     if (!req.body || Object.keys(req.body).length === 0) {
         return res.status(400).json({
             error: 'El cuerpo de la solicitud está vacío'
@@ -28,7 +28,7 @@ exports.createUsuario = (req, res) => {
 
     const { email, password, rol } = req.body;
 
-    // Validate required fields
+    // Validar campos requeridos
     if (!email || !password || !rol) {
         return res.status(400).json({
             error: 'Todos los campos son requeridos',
@@ -40,7 +40,7 @@ exports.createUsuario = (req, res) => {
         });
     }
 
-    // Validate email format
+    // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         return res.status(400).json({
@@ -48,7 +48,7 @@ exports.createUsuario = (req, res) => {
         });
     }
 
-    // Validate rol enum values
+    // Validar valores enumerados de rol
     const rolesValidos = ['admin', 'usuario'];
     if (!rolesValidos.includes(rol)) {
         return res.status(400).json({
@@ -60,9 +60,9 @@ exports.createUsuario = (req, res) => {
 
     const nuevoUsuario = {
         email,
-        password, // Note: In production, this should be hashed
+        password, 
         rol
-        // fecha_creacion and ultimo_acceso are handled by MySQL
+        // fecha_creacion y ultimo_acceso los maneja MySQL
     };
 
     Usuario.create(nuevoUsuario, (err, result) => {
@@ -83,7 +83,7 @@ exports.createUsuario = (req, res) => {
             id: result.insertId,
             usuario: {
                 ...nuevoUsuario,
-                password: undefined // Don't send password back
+                password: undefined 
             }
         });
     });

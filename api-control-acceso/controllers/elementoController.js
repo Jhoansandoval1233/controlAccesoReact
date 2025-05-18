@@ -26,10 +26,9 @@ const elementoController = {
   },
 
   create: (req, res) => {
-    // Log request body
     console.log('Request body:', req.body);
 
-    // Validate request body
+    // Validar si el cuerpo de la solicitud está vacío
     if (!req.body || Object.keys(req.body).length === 0) {
         return res.status(400).json({ 
             error: 'El cuerpo de la solicitud está vacío' 
@@ -38,7 +37,7 @@ const elementoController = {
 
     const { tipo_elemento, serial, observaciones } = req.body;
 
-    // Validate required fields
+    // Validar campos requeridos
     if (!tipo_elemento || !serial) {
         return res.status(400).json({ 
             error: 'tipo_elemento y serial son campos requeridos',
