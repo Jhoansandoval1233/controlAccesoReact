@@ -21,32 +21,98 @@ exports.getById = (req, res) => {
 };
 
 exports.create = (req, res) => {
-    const { nombre, apellido, documento_identidad, tipo_documento, telefono, correo, tipo } = req.body;
+    console.log('Request body:', req.body);
 
-    // Validar campos obligatorios
-    if (!nombre || !apellido || !documento_identidad || !tipo_documento || !tipo) {
-        return res.status(400).json({ mensaje: 'Todos los campos obligatorios deben ser enviados' });
+    // Validar si el cuerpo de la solicitud está vacío
+    if (!req.body || Object.keys(req.body).length === 0) {
+        return res.status(400).json({
+            mensaje: 'El cuerpo de la solicitud está vacío'
+        });
     }
 
-    Persona.create({ nombre, apellido, documento_identidad, tipo_documento, telefono, correo, tipo }, (err, result) => {
+    const { nombre, apellido, tipo_documento, numero_documento, telefono, correo, tipo_rol } = req.body;
+
+    // Validar campos requeridos
+    if (!nombre || !apellido || !tipo_documento || !numero_documento || !tipo_rol) {
+        return res.status(400).json({
+            mensaje: 'Campos requeridos faltantes',
+            requeridos: {
+                nombre: !nombre,
+                apellido: !apellido,
+                tipo_documento: !tipo_documento,
+                numero_documento: !numero_documento,
+                tipo_rol: !tipo_rol
+            }
+        });
+    }
+
+    // Validar tipos de documento permitidos
+    const tiposDocumentoValidos = ['CC', 'TI', 'Pasaporte'];
+    if (!tiposDocumentoValidos.includes(tipo_documento)) {
+        return res.status(400).json({
+            mensaje: 'Tipo de documento inválido',
+            permitidos: tiposDocumentoValidos,
+            recibido: tipo_documento
+        });
+    }
+
+    // Validar tipos de rol permitidos
+    const tiposRolValidos = ['Visitante', 'Empleado', 'Proveedor', 'Aprendiz'];
+    if (!tiposRolValidos.includes(tipo_rol)) {
+        return res.status(400).json({
+            mensaje: 'Tipo de rol inválido',
+            permitidos: tiposRolValidos,
+            recibido: tipo_rol
+        });
+    }
+
+    // Validar campos requeridos
+    if (!nombre || !apellido || !tipo_documento || !numero_documento || !tipo_rol) {
+        return res.status(400).json({
+            mensaje: 'Campos requeridos faltantes',
+            requeridos: {
+                nombre: !nombre,
+                apellido: !apellido,
+                tipo_documento: !tipo_documento,
+                numero_documento: !numero_documento,
+                tipo_rol: !tipo_rol
+            }
+        });
+    }
+
+    const personaData = {
+        nombre,
+        apellido,
+        tipo_documento,
+        numero_documento,
+        telefono,
+        correo,
+        tipo_rol
+    };
+
+    Persona.create(personaData, (err, result) => {
         if (err) {
             console.error('Error al crear persona:', err);
-            return res.status(500).json({ error: err });
+            return res.status(500).json({ error: err.message });
         }
-        res.status(201).json({ mensaje: 'Persona creada', id: result.insertId });
+        res.status(201).json({
+            mensaje: 'Persona creada exitosamente',
+            id: result.insertId,
+            data: personaData
+        });
     });
 };
 
 exports.update = (req, res) => {
     const id = req.params.id;
-    const { nombre, apellido, documento_identidad, tipo_documento, telefono, correo, tipo } = req.body;
+    const { nombre, apellido, numero_documento, tipo_documento, telefono, correo, tipo_rol } = req.body;
 
     // Validar campos obligatorios
-    if (!nombre || !apellido || !documento_identidad || !tipo_documento || !tipo) {
+    if (!nombre || !apellido || !numero_documento || !tipo_documento || !tipo_rol) {
         return res.status(400).json({ mensaje: 'Todos los campos obligatorios deben ser enviados' });
     }
 
-    Persona.update(id, { nombre, apellido, documento_identidad, tipo_documento, telefono, correo, tipo }, (err) => {
+    Persona.update(id, { nombre, apellido, numero_documento, tipo_documento, telefono, correo, tipo_rol }, (err) => {
         if (err) {
             console.error('Error al actualizar persona:', err);
             return res.status(500).json({ error: err });

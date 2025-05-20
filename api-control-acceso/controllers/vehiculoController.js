@@ -26,15 +26,51 @@ const vehiculoController = {
   },
 
   create: (req, res) => {
-    const newVehiculo = req.body;
-    Vehiculo.create(newVehiculo, (err, result) => {
-      if (err) {
-        console.error('Error al crear el vehículo:', err);
-        return res.status(500).json({ error: 'Error al crear el vehículo' });
-      }
-      res.status(201).json({ message: 'Vehículo creado correctamente', id: result.insertId });
+    console.log('Request body:', req.body);
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+        return res.status(400).json({ 
+            error: 'El cuerpo de la solicitud está vacío' 
+        });
+    }
+
+    const { placa, tipo_vehiculo } = req.body;
+
+    // Validar campos requeridos
+    if (!placa || !tipo_vehiculo) {
+        return res.status(400).json({
+            error: 'placa y tipo_vehiculo son campos requeridos',
+            received: { placa, tipo_vehiculo }
+        });
+    }
+
+    // Validar tipo_vehiculo según ENUM
+    const tiposValidos = ['automovil', 'motocicleta', 'otro'];
+    if (!tiposValidos.includes(tipo_vehiculo.toLowerCase())) {
+        return res.status(400).json({
+            error: 'Tipo de vehículo inválido',
+            permitidos: tiposValidos,
+            recibido: tipo_vehiculo
+        });
+    }
+
+    const vehiculoData = {
+        placa: placa.toUpperCase(),
+        tipo_vehiculo: tipo_vehiculo.toLowerCase()
+    };
+
+    Vehiculo.create(vehiculoData, (err, result) => {
+        if (err) {
+            console.error('Error al crear vehículo:', err);
+            return res.status(500).json({ error: 'Error al crear el vehículo' });
+        }
+        res.status(201).json({
+            message: 'Vehículo creado exitosamente',
+            id: result.insertId,
+            vehiculo: vehiculoData
+        });
     });
-  },
+},
 
   update: (req, res) => {
     const id = req.params.id;

@@ -113,6 +113,47 @@ const PersonasComponent = () => {
             <div className="col-12 form-check mt-3">
               <input
                 type="checkbox"
+                name="registrarVehiculo"
+                checked={formData.registrarVehiculo}
+                onChange={handleChange}
+                className="form-check-input"
+                id="checkVehiculo"
+              />
+              <label htmlFor="checkVehiculo" className="form-check-label">
+                Registrar vehículo
+              </label>
+            </div>
+
+            {formData.registrarVehiculo && (
+              <>
+                <div className="col-12">
+                  <select
+                    name="tipoVehiculo"
+                    value={formData.tipoVehiculo}
+                    onChange={handleChange}
+                    className="form-select"
+                  >
+                    <option value="">Seleccione tipo de vehículo</option>
+                    <option value="automovil">Automóvil</option>
+                    <option value="motocicleta">Motocicleta</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+                <div className="col-12">
+                  <input
+                    name="placa"
+                    value={formData.placa}
+                    onChange={handleChange}
+                    placeholder="Placa"
+                    className="form-control"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="col-12 form-check mt-3">
+              <input
+                type="checkbox"
                 name="registrarElemento"
                 checked={formData.registrarElemento}
                 onChange={handleChange}
@@ -123,7 +164,7 @@ const PersonasComponent = () => {
                 Registrar elemento
               </label>
             </div>
-
+            
             {formData.registrarElemento && (
               <>
                 <div className="col-12">
@@ -141,43 +182,6 @@ const PersonasComponent = () => {
                     value={formData.serialElemento}
                     onChange={handleChange}
                     placeholder="Serial"
-                    className="form-control"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="col-12 form-check mt-3">
-              <input
-                type="checkbox"
-                name="registrarVehiculo"
-                checked={formData.registrarVehiculo}
-                onChange={handleChange}
-                className="form-check-input"
-                id="checkVehiculo"
-              />
-              <label htmlFor="checkVehiculo" className="form-check-label">
-                Registrar vehículo
-              </label>
-            </div>
-
-            {formData.registrarVehiculo && (
-              <>
-                <div className="col-12">
-                  <input
-                    name="tipoVehiculo"
-                    value={formData.tipoVehiculo}
-                    onChange={handleChange}
-                    placeholder="Tipo de vehículo"
-                    className="form-control"
-                  />
-                </div>
-                <div className="col-12">
-                  <input
-                    name="placa"
-                    value={formData.placa}
-                    onChange={handleChange}
-                    placeholder="Placa"
                     className="form-control"
                   />
                 </div>

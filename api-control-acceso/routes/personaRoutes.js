@@ -8,9 +8,4 @@ router.post('/', personaController.create);
 router.put('/:id', personaController.update);
 router.delete('/:id', personaController.delete);
 
-router.get('/test', (req, res) => {
-    console.log('Solicitud recibida en /api/persona/test');
-    res.send('Ruta de prueba funcionando');
-  });
-
 module.exports = router;

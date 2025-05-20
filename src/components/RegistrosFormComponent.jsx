@@ -9,9 +9,11 @@ const RegistrosFormComponent = () => {
   const [documento, setDocumento] = useState('');
   const [tipoAcceso, setTipoAcceso] = useState('entrada');
   const [incluyeVehiculo, setIncluyeVehiculo] = useState(false);
-  const [incluyeElemento, setIncluyeElemento] = useState(false);
+  const [tipoVehiculo, setTipoVehiculo] = useState('');
   const [placaVehiculo, setPlacaVehiculo] = useState('');
-  const [descripcionElemento, setDescripcionElemento] = useState('');
+  const [incluyeElemento, setIncluyeElemento] = useState(false);
+  const [tipoElemento, setTipoElemento] = useState('');
+  const [serial, setSerial] = useState('');
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
 
   const handleSubmit = (e) => {
@@ -26,14 +28,15 @@ const RegistrosFormComponent = () => {
       return;
     }
 
-    // Simulación de envío de datos
     console.log({
       documento,
       tipoAcceso,
       incluyeVehiculo,
+      tipoVehiculo,
       placaVehiculo,
       incluyeElemento,
-      descripcionElemento,
+      tipoElemento,
+      serial,
     });
 
     setAlert({
@@ -46,9 +49,11 @@ const RegistrosFormComponent = () => {
     setDocumento('');
     setTipoAcceso('entrada');
     setIncluyeVehiculo(false);
-    setIncluyeElemento(false);
+    setTipoVehiculo('');
     setPlacaVehiculo('');
-    setDescripcionElemento('');
+    setIncluyeElemento(false);
+    setTipoElemento('');
+    setSerial('');
   };
 
   return (
@@ -90,13 +95,26 @@ const RegistrosFormComponent = () => {
           </div>
 
           {incluyeVehiculo && (
-            <InputField
-              label="Placa del Vehículo"
-              type="text"
-              placeholder="Ej: ABC123"
-              value={placaVehiculo}
-              onChange={(e) => setPlacaVehiculo(e.target.value)}
-            />
+            <>
+              <SelectDropdown
+                label="Tipo de vehículo"
+                options={[
+                  { value: '', label: 'Seleccione tipo de vehículo' },
+                  { value: 'automovil', label: 'Automóvil' },
+                  { value: 'motocicleta', label: 'Motocicleta' },
+                  { value: 'otro', label: 'Otro' }
+                ]}
+                value={tipoVehiculo}
+                onChange={(e) => setTipoVehiculo(e.target.value)}
+              />
+              <InputField
+                label="Placa del Vehículo"
+                type="text"
+                placeholder="Ej: ABC123"
+                value={placaVehiculo}
+                onChange={(e) => setPlacaVehiculo(e.target.value)}
+              />
+            </>
           )}
 
           {/* Check elemento */}
@@ -114,13 +132,22 @@ const RegistrosFormComponent = () => {
           </div>
 
           {incluyeElemento && (
-            <InputField
-              label="Descripción del Elemento"
-              type="text"
-              placeholder="Ej: Portátil, caja de herramientas, etc."
-              value={descripcionElemento}
-              onChange={(e) => setDescripcionElemento(e.target.value)}
-            />
+            <>
+              <InputField
+                label="Tipo de Elemento"
+                type="text"
+                placeholder="Ej: Portátil, Herramienta"
+                value={tipoElemento}
+                onChange={(e) => setTipoElemento(e.target.value)}
+              />
+              <InputField
+                label="Serial"
+                type="text"
+                placeholder="Ej: ABC123XYZ"
+                value={serial}
+                onChange={(e) => setSerial(e.target.value)}
+              />
+            </>
           )}
 
           <Button type="submit" variant="success">

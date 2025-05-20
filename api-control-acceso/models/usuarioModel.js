@@ -1,57 +1,61 @@
 const db = require('../config/db');
 
 const Usuario = {
-  getAll: (callback) => {
-    db.query('SELECT * FROM usuario', callback);
-  },
+    getAll: (callback) => {
+        const sql = 'SELECT id, email, rol, fecha_creacion, ultimo_acceso FROM usuarios';
+        db.query(sql, callback);
+    },
 
-  getById: (id, callback) => {
-    db.query('SELECT * FROM usuario WHERE id_usuario = ?', [id], callback);
-  },
+    getById: (id, callback) => {
+        const sql = 'SELECT id, email, rol, fecha_creacion, ultimo_acceso FROM usuarios WHERE id = ?';
+        db.query(sql, [id], callback);
+    },
 
-  create: (usuario, callback) => {
-    const {
-      nombre,
-      apellido,
-      correo,
-      contraseña,
-      rol,
-      estado,
-      documento_identidad,
-      tipo_documento
-    } = usuario;
+    create: (data, callback) => {
+        // Validar rol 
+        const rolesValidos = ['admin', 'usuario'];
+        if (!rolesValidos.includes(data.rol)) {
+            return callback(new Error('Rol inválido'));
+        }
 
-    db.query(
-      `INSERT INTO usuario (nombre, apellido, correo, contraseña, rol, estado, documento_identidad, tipo_documento)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, apellido, correo, contraseña, rol, estado ?? 1, documento_identidad, tipo_documento],
-      callback
-    );
-  },
+        const sql = `
+            INSERT INTO usuarios (
+                email,
+                password,
+                rol
+            ) VALUES (?, ?, ?)
+        `;
 
-  update: (id, usuario, callback) => {
-    const {
-      nombre,
-      apellido,
-      correo,
-      contraseña,
-      rol,
-      estado,
-      documento_identidad,
-      tipo_documento
-    } = usuario;
+        const values = [
+            data.email.toLowerCase(),
+            data.password,
+            data.rol
+        ];
 
-    db.query(
-      `UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, contraseña = ?, rol = ?, estado = ?, documento_identidad = ?, tipo_documento = ?
-       WHERE id_usuario = ?`,
-      [nombre, apellido, correo, contraseña, rol, estado, documento_identidad, tipo_documento, id],
-      callback
-    );
-  },
+        console.log('Creating user with data:', {
+            ...values,
+            password: '[PROTECTED]'
+        });
 
-  delete: (id, callback) => {
-    db.query('DELETE FROM usuario WHERE id_usuario = ?', [id], callback);
-  }
+        db.query(sql, values, (error, results) => {
+            if (error) {
+                console.error('Error creating user:', error);
+                return callback(error);
+            }
+            callback(null, results);
+        });
+    },
+
+    delete: (id, callback) => {
+        const sql = 'DELETE FROM usuarios WHERE id = ?';
+        db.query(sql, [id], (error, results) => {
+            if (error) {
+                console.error('Error deleting user:', error);
+                return callback(error);
+            }
+            callback(null, results);
+        });
+    }
 };
 
 module.exports = Usuario;

@@ -26,13 +26,45 @@ const elementoController = {
   },
 
   create: (req, res) => {
-    const newElemento = req.body;
+    console.log('Request body:', req.body);
+
+    // Validar si el cuerpo de la solicitud está vacío
+    if (!req.body || Object.keys(req.body).length === 0) {
+        return res.status(400).json({ 
+            error: 'El cuerpo de la solicitud está vacío' 
+        });
+    }
+
+    const { tipo_elemento, serial, observaciones } = req.body;
+
+    // Validar campos requeridos
+    if (!tipo_elemento || !serial) {
+        return res.status(400).json({ 
+            error: 'tipo_elemento y serial son campos requeridos',
+            received: {
+                tipo_elemento,
+                serial,
+                observaciones
+            }
+        });
+    }
+
+    const newElemento = {
+        tipo_elemento,
+        serial,
+        observaciones: observaciones || null
+    };
+
     Elemento.create(newElemento, (err, result) => {
-      if (err) {
-        console.error('Error al crear el elemento:', err);
-        return res.status(500).json({ error: 'Error al crear el elemento' });
-      }
-      res.status(201).json({ message: 'Elemento creado correctamente', id: result.insertId });
+        if (err) {
+            console.error('Error al crear el elemento:', err);
+            return res.status(500).json({ error: 'Error al crear el elemento' });
+        }
+        res.status(201).json({ 
+            message: 'Elemento creado correctamente', 
+            id: result.insertId,
+            elemento: newElemento
+        });
     });
   },
 
