@@ -1,10 +1,10 @@
 /* Variables de colores modernos */
 :root {
-  --primary-color: #2563eb;    /* Azul moderno */
+  --primary-color: #F7931E;    /* Azul moderno */
   --secondary-color: #1e293b;  /* Azul oscuro */
-  --background-color: #f8fafc; /* Gris muy claro */
+  --background-color: #1A9D49; /* Gris muy claro */
   --text-color: #334155;       /* Gris azulado */
-  --accent-color: #3b82f6;     /* Azul acento */
+  --accent-color: #F7931E;     /* Azul acento */
 }
 
 /* Estilos generales para la aplicación */
@@ -131,7 +131,7 @@ main {
 }
 
 .bg-primary:hover {
-  background-color: #1D4ED8;
+  background-color: #1A9D49;
 }
 
 .bg-secondary:hover {
@@ -139,7 +139,7 @@ main {
 }
 
 .bg-success:hover {
-  background-color: #059669;
+  background-color: #1A9D49;
 }
 
 .btn:disabled {
@@ -196,4 +196,40 @@ main {
 
 .table-hover tbody tr:hover {
   background-color: rgba(37, 99, 235, 0.05);
+}
+/* Estilos responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+  .custom-navbar {
+    padding: 0.5rem 1rem;
+    flex-direction: column;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 0.75rem 1rem;
+    text-align: center;
+  }
+
+  .search-input {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .custom-table {
+    font-size: 0.875rem;
+    overflow-x: auto;
+  }
+
+  .custom-table {
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+
+.table td, .table th {
+  padding: 0.75rem;
+}
+
+.container {
+  padding: 1rem;
+}
 }
