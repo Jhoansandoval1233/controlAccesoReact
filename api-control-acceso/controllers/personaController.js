@@ -11,6 +11,8 @@ exports.getAll = (req, res) => {
     });
 };
 
+
+
 exports.getById = (req, res) => {
     const id = req.params.id;
     Persona.getById(id, (err, results) => {
@@ -18,6 +20,14 @@ exports.getById = (req, res) => {
         if (results.length === 0) return res.status(404).json({ mensaje: 'Persona no encontrada' });
         res.json(results[0]);
     });
+};
+exports.buscarPorDocumento = (req, res) => {
+  const documento = req.params.documento;
+  Persona.getByNumeroDocumento(documento, (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ mensaje: 'Persona no encontrada' });
+    res.json(results[0]);
+  });
 };
 
 exports.create = (req, res) => {
@@ -164,3 +174,4 @@ exports.getByDocumento = (req, res) => {
         });
     });
 };
+

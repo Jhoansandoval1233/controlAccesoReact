@@ -6,14 +6,6 @@ const ConsultasComponent = () => {
   const [searchQuery, setSearchQuery] = useState(""); // Estado para el campo de búsqueda
   const [resultados, setResultados] = useState([]); // Estado para los resultados de la búsqueda
 
-  // Datos de ejemplo para mostrar en la tabla
-  const registrosDeEjemplo = [
-    { id: 1, fecha: "28/03/2025", entrada: "06:00", salida: "14:00", persona: "Pedro Perez", cargo: "Aprendiz", observaciones: "" },
-    { id: 2, fecha: "28/03/2025", entrada: "06:00", salida: "14:00", persona: "Pablo Rodriguez", cargo: "Visitante", observaciones: "S/N" },
-    { id: 3, fecha: "28/03/2025", entrada: "06:00", salida: "14:00", persona: "Juan Perez", cargo: "Funcionario", observaciones: "S/N" },
-    // Puedes agregar más registros aquí
-  ];
-
   // Función para manejar el cambio en el campo de búsqueda
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
