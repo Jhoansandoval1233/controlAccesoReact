@@ -57,6 +57,11 @@ const Persona = {
     delete: (id, callback) => {
         const sql = 'DELETE FROM personas WHERE id = ?';
         db.query(sql, [id], callback);
+    },
+    getByDocumento: (numero_documento, callback) => {
+        const sql = 'SELECT * FROM personas WHERE numero_documento = ?';
+        console.log('Buscando documento:', numero_documento);
+        db.query(sql, [numero_documento], callback);
     }
 };
 

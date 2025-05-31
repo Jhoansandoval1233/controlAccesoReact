@@ -131,3 +131,36 @@ exports.delete = (req, res) => {
         res.json({ mensaje: 'Persona eliminada' });
     });
 };
+
+exports.getByDocumento = (req, res) => {
+    const numero_documento = req.params.numero_documento;
+    console.log('Verificando documento:', numero_documento);
+
+    if (!numero_documento) {
+        return res.status(400).json({
+            mensaje: 'El número de documento es requerido'
+        });
+    }
+
+    Persona.getByDocumento(numero_documento, (err, results) => {
+        if (err) {
+            console.error('Error al buscar persona por documento:', err);
+            return res.status(500).json({ 
+                error: 'Error al buscar persona' 
+            });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ 
+                mensaje: 'Persona no encontrada',
+                existe: false 
+            });
+        }
+
+        res.json({
+            mensaje: 'Persona encontrada',
+            existe: true,
+            persona: results[0]
+        });
+    });
+};
