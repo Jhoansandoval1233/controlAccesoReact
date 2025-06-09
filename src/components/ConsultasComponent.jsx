@@ -14,7 +14,7 @@ const ConsultasComponent = () => {
   // Función para realizar la búsqueda
   const handleSearch = () => {
     // Filtra los registros por ID si coincide con el texto de búsqueda
-    const filteredResults = registrosDeEjemplo.filter((registro) =>
+    const filteredResults = registros.filter((registro) =>
       registro.id.toString().includes(searchQuery)
     );
     setResultados(filteredResults);
