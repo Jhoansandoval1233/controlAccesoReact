@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import NavbarComponent from './components/NavbarComponent';
 import LoginComponent from './components/LoginComponent';
+import NavbarComponent from './components/NavbarComponent';
 import RegistrosFormComponent from './components/RegistrosFormComponent';
 import PersonasComponent from './components/PersonasComponent';
-import VehiculosComponent from './components/VehiculosComponent';
-import ElementosComponent from './components/ElementosComponent';
 import ConsultasComponent from './components/ConsultasComponent';
 import FooterComponent from './components/FooterComponent';
+import UsuariosRegistro from './components/UsuariosRegistroComponent';
+import RestablecerContraseña from './components/RestablecerContraseñaComponent';
+
+
+// Protected Route wrapper component
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('authenticated') === 'true';
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
 
 const AppRouter = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,17 +39,36 @@ const AppRouter = () => {
 
   return (
     <Router>
+      {/* NavBar solo aparece una vez autenticado */}
       {isAuthenticated && <NavbarComponent />}
 
       <div className="container mt-4">
         <Routes>
-          <Route path="/" element={isAuthenticated ? <Navigate to="/registros" /> : <LoginComponent />} />
           <Route path="/login" element={<LoginComponent />} />
-          <Route path="/registros" element={isAuthenticated ? <RegistrosFormComponent /> : <Navigate to="/login" />} />
-          <Route path="/personas" element={isAuthenticated ? <PersonasComponent /> : <Navigate to="/login" />} />
-          <Route path="/vehiculos" element={isAuthenticated ? <VehiculosComponent /> : <Navigate to="/login" />} />
-          <Route path="/elementos" element={isAuthenticated ? <ElementosComponent /> : <Navigate to="/login" />} />
-          <Route path="/consultas" element={isAuthenticated ? <ConsultasComponent /> : <Navigate to="/login" />} />
+          <Route path="/" element={
+            isAuthenticated ? 
+            <Navigate to="/registros" /> : 
+            <Navigate to="/login" />
+          } />
+          
+          {/* Protected Routes */}
+          <Route path="/registros" element={
+            <ProtectedRoute>
+              <RegistrosFormComponent />
+            </ProtectedRoute>
+          } />
+          <Route path="/personas" element={
+            <ProtectedRoute>
+              <PersonasComponent />
+            </ProtectedRoute>
+          } />
+          <Route path="/consultas" element={
+            <ProtectedRoute>
+              <ConsultasComponent />
+            </ProtectedRoute>
+          } />
+          <Route path="/register" element={<UsuariosRegistro />} />
+          <Route path="/forgot-password" element={<RestablecerContraseña />} />
         </Routes>
       </div>
 

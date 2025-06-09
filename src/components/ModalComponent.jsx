@@ -1,4 +1,5 @@
 import React from 'react'
+import Modal from './ui/Modal';
 
 export default function ModalComponent() {
   return (
@@ -16,15 +17,26 @@ export default function ModalComponent() {
             onClose={() => setShowModal(false)}
             title="Persona no registrada"
             footer={
-              <Button 
-                variant="primary" 
-                onClick={handleRegistrarPersona}
-              >
-                Registrar Persona
-              </Button>
+              <>
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="success" 
+                  onClick={handleRegistrarPersona}
+                >
+                  Registrar Persona
+                </Button>
+              </>
             }
           >
-            <p>La persona con documento {documento} no se encuentra registrada en el sistema.</p>
+            <div className="modal-body">
+              <p>La persona con documento <strong>{documento}</strong> no está registrada en el sistema.</p>
+              <p>¿Desea registrar esta persona?</p>
+            </div>
           </Modal>
         )}
       </Card>
