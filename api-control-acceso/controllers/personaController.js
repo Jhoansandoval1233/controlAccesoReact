@@ -30,87 +30,75 @@ exports.buscarPorDocumento = (req, res) => {
   });
 };
 
-exports.create = (req, res) => {
-    console.log('Request body:', req.body);
+exports.create = async (req, res) => {
+  const { 
+    nombre, 
+    apellido, 
+    tipo_documento, 
+    numero_documento, 
+    telefono, 
+    correo, 
+    tipoRol  
+  } = req.body;
 
-    // Validar si el cuerpo de la solicitud está vacío
-    if (!req.body || Object.keys(req.body).length === 0) {
-        return res.status(400).json({
-            mensaje: 'El cuerpo de la solicitud está vacío'
+  // Validación de campos requeridos
+  if (!nombre || !apellido || !tipo_documento || !numero_documento || !tipoRol) {
+    return res.status(400).json({
+      success: false,
+      message: 'Todos los campos marcados son obligatorios'
+    });
+  }
+
+  try {
+    // Verificar si la persona ya existe
+    Persona.findByDocumento(numero_documento, (err, results) => {
+      if (err) {
+        console.error('Error al buscar documento:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Error al verificar documento'
         });
-    }
+      }
 
-    const { nombre, apellido, tipo_documento, numero_documento, telefono, correo, tipo_rol } = req.body;
-
-    // Validar campos requeridos
-    if (!nombre || !apellido || !tipo_documento || !numero_documento || !tipo_rol) {
+      if (results.length > 0) {
         return res.status(400).json({
-            mensaje: 'Campos requeridos faltantes',
-            requeridos: {
-                nombre: !nombre,
-                apellido: !apellido,
-                tipo_documento: !tipo_documento,
-                numero_documento: !numero_documento,
-                tipo_rol: !tipo_rol
-            }
+          success: false,
+          message: 'El número de documento ya está registrado'
         });
-    }
+      }
 
-    // Validar tipos de documento permitidos
-    const tiposDocumentoValidos = ['CC', 'TI', 'Pasaporte'];
-    if (!tiposDocumentoValidos.includes(tipo_documento)) {
-        return res.status(400).json({
-            mensaje: 'Tipo de documento inválido',
-            permitidos: tiposDocumentoValidos,
-            recibido: tipo_documento
-        });
-    }
-
-    // Validar tipos de rol permitidos
-    const tiposRolValidos = ['Visitante', 'Empleado', 'Proveedor', 'Aprendiz'];
-    if (!tiposRolValidos.includes(tipo_rol)) {
-        return res.status(400).json({
-            mensaje: 'Tipo de rol inválido',
-            permitidos: tiposRolValidos,
-            recibido: tipo_rol
-        });
-    }
-
-    // Validar campos requeridos
-    if (!nombre || !apellido || !tipo_documento || !numero_documento || !tipo_rol) {
-        return res.status(400).json({
-            mensaje: 'Campos requeridos faltantes',
-            requeridos: {
-                nombre: !nombre,
-                apellido: !apellido,
-                tipo_documento: !tipo_documento,
-                numero_documento: !numero_documento,
-                tipo_rol: !tipo_rol
-            }
-        });
-    }
-
-    const personaData = {
+      // Crear nueva persona
+      Persona.create({
         nombre,
         apellido,
         tipo_documento,
         numero_documento,
         telefono,
         correo,
-        tipo_rol
-    };
-
-    Persona.create(personaData, (err, result) => {
-        if (err) {
-            console.error('Error al crear persona:', err);
-            return res.status(500).json({ error: err.message });
+        tipo_rol: tipoRol  
+      }, (createErr, result) => {
+        if (createErr) {
+          console.error('Error al crear persona:', createErr);
+          return res.status(500).json({
+            success: false,
+            message: 'Error al crear el registro'
+          });
         }
+
         res.status(201).json({
-            mensaje: 'Persona creada exitosamente',
-            id: result.insertId,
-            data: personaData
+          success: true,
+          message: 'Persona registrada exitosamente',
+          id: result.insertId
         });
+      });
     });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
 };
 
 exports.update = (req, res) => {

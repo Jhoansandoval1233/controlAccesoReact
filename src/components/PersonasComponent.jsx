@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
+import AlertComponent from "./AlertComponent";
 
 const PersonasComponent = () => {
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -27,14 +30,136 @@ const PersonasComponent = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Datos registrados:", formData);
+    setLoading(true);
+    setAlert({ show: false });
+
+    try {
+      // Validar campos requeridos
+      const requiredFields = ['nombre', 'apellido', 'tipoDocumento', 'numeroID', 'tipoRol'];
+      const emptyFields = requiredFields.filter(field => !formData[field]);
+
+      if (emptyFields.length > 0) {
+        setAlert({
+          show: true,
+          type: 'danger',
+          message: 'Por favor complete todos los campos requeridos'
+        });
+        return;
+      }
+
+      const personaData = {
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        tipo_documento: formData.tipoDocumento,
+        numero_documento: formData.numeroID,
+        telefono: formData.telefono || null,
+        correo: formData.correo || null,
+        tipoRol: formData.tipoRol  
+      };
+
+      // Enviar datos de persona
+      const response = await fetch('http://localhost:4000/api/persona', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(personaData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al registrar persona');
+      }
+
+      const personaId = data.id;
+
+      // Si hay vehículo, registrarlo
+      if (formData.registrarVehiculo && formData.tipoVehiculo && formData.placa) {
+        const vehiculoResponse = await fetch('http://localhost:4000/api/vehiculo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            persona_id: personaId,
+            tipo_vehiculo: formData.tipoVehiculo,
+            placa: formData.placa
+          })
+        });
+
+        if (!vehiculoResponse.ok) {
+          console.error('Error al registrar vehículo');
+        }
+      }
+
+      // Si hay elemento, registrarlo
+      if (formData.registrarElemento && formData.tipoElemento && formData.serialElemento) {
+        const elementoResponse = await fetch('http://localhost:4000/api/elemento', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            persona_id: personaId,
+            tipo_elemento: formData.tipoElemento,
+            serial: formData.serialElemento
+          })
+        });
+
+        if (!elementoResponse.ok) {
+          console.error('Error al registrar elemento');
+        }
+      }
+
+      setAlert({
+        show: true,
+        type: 'success',
+        message: 'Registro completado exitosamente'
+      });
+
+      // Limpiar formulario
+      setFormData({
+        nombre: "",
+        apellido: "",
+        tipoDocumento: "",
+        numeroID: "",
+        telefono: "",
+        correo: "",
+        tipoRol: "",
+        registrarElemento: false,
+        tipoElemento: "",
+        serialElemento: "",
+        registrarVehiculo: false,
+        tipoVehiculo: "",
+        placa: "",
+      });
+
+    } catch (error) {
+      console.error('Error:', error);
+      setAlert({
+        show: true,
+        type: 'danger',
+        message: error.message || 'Error al procesar el registro'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="container mt-4" style={{ maxWidth: '600px' }}>
       <Card title="Ingresar persona">
+        {alert.show && (
+          <AlertComponent 
+            type={alert.type} 
+            message={alert.message}
+            onClose={() => setAlert({ show: false })} 
+          />
+        )}
+        
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
             <div className="col-12">
@@ -190,8 +315,12 @@ const PersonasComponent = () => {
           </div>
 
           <div className="text-center mt-4">
-            <Button type="submit" variant="success">
-              Registrar datos
+            <Button 
+              type="submit" 
+              variant="success"
+              disabled={loading}
+            >
+              {loading ? 'Registrando...' : 'Registrar datos'}
             </Button>
           </div>
         </form>
