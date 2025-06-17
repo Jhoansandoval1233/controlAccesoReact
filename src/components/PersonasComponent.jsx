@@ -46,9 +46,11 @@ const PersonasComponent = () => {
           type: 'danger',
           message: 'Por favor complete todos los campos requeridos'
         });
+        setLoading(false);
         return;
       }
 
+      // Preparar datos para enviar al backend
       const personaData = {
         nombre: formData.nombre,
         apellido: formData.apellido,
@@ -56,8 +58,10 @@ const PersonasComponent = () => {
         numero_documento: formData.numeroID,
         telefono: formData.telefono || null,
         correo: formData.correo || null,
-        tipoRol: formData.tipoRol  
+        tipo_rol: formData.tipoRol  
       };
+
+      console.log('Enviando datos:', personaData); // Para debugging
 
       // Enviar datos de persona
       const response = await fetch('http://localhost:4000/api/persona', {
@@ -76,7 +80,7 @@ const PersonasComponent = () => {
 
       const personaId = data.id;
 
-      // Si hay vehículo, registrarlo
+      // Manejar registro de vehículo si existe
       if (formData.registrarVehiculo && formData.tipoVehiculo && formData.placa) {
         const vehiculoResponse = await fetch('http://localhost:4000/api/vehiculo', {
           method: 'POST',
@@ -95,7 +99,7 @@ const PersonasComponent = () => {
         }
       }
 
-      // Si hay elemento, registrarlo
+      // Manejar registro de elemento si existe
       if (formData.registrarElemento && formData.tipoElemento && formData.serialElemento) {
         const elementoResponse = await fetch('http://localhost:4000/api/elemento', {
           method: 'POST',
@@ -114,6 +118,7 @@ const PersonasComponent = () => {
         }
       }
 
+      // Mostrar mensaje de éxito
       setAlert({
         show: true,
         type: 'success',
@@ -138,7 +143,7 @@ const PersonasComponent = () => {
       });
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error completo:', error);
       setAlert({
         show: true,
         type: 'danger',
