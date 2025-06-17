@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const db = require('../config/db');
 
 const Persona = {
   create: (data, callback) => {
@@ -30,7 +30,27 @@ const Persona = {
   findByDocumento: (numero_documento, callback) => {
     const sql = 'SELECT * FROM personas WHERE numero_documento = ?';
     db.query(sql, [numero_documento], callback);
-  }
+  },
+
+  getAll: (callback) => {
+    const sql = `
+      SELECT 
+        id,
+        nombre,
+        apellido,
+        tipo_documento,
+        numero_documento,
+        telefono,
+        correo,
+        tipo_rol,
+        activo,
+        fecha_registro
+      FROM personas 
+      WHERE activo = 1
+      ORDER BY fecha_registro DESC
+    `;
+    db.query(sql, callback);
+  },
 };
 
 module.exports = Persona;

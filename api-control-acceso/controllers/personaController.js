@@ -1,14 +1,32 @@
 const Persona = require('../models/personaModel');
 
 exports.getAll = (req, res) => {
-    console.log('Solicitud GET recibida en /api/persona');
-    Persona.getAll((err, results) => {
-        if (err) {
-            console.error('Error al obtener personas:', err);
-            return res.status(500).json({ error: err });
-        }
-        res.json(results);
+  console.log('Solicitud GET recibida en /api/persona');
+  
+  Persona.getAll((err, results) => {
+    if (err) {
+      console.error('Error al obtener personas:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al obtener las personas'
+      });
+    }
+
+    const formattedResults = results.map(person => ({
+      ...person,
+      fecha_registro: new Date(person.fecha_registro)
+        .toLocaleString('es-CO', {
+          dateStyle: 'medium',
+          timeStyle: 'medium'
+        })
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedResults,
+      total: formattedResults.length
     });
+  });
 };
 
 

@@ -4,11 +4,35 @@ const Elemento = require('../models/elementoModel');
 
 const controlAccesoController = {
   getAll: (req, res) => {
-    ControlAcceso.getAll((err, result) => {
+    ControlAcceso.getAll((err, results) => {
       if (err) {
-        return res.status(500).json({ error: 'Error al obtener los registros' });
+        console.error('Error al obtener registros:', err);
+        return res.status(500).json({ 
+          success: false,
+          message: 'Error al obtener los registros'
+        });
       }
-      res.status(200).json(result);
+
+      const formattedResults = results.map(record => ({
+        ...record,
+        fecha_hora_ingreso: new Date(record.fecha_hora_ingreso)
+          .toLocaleString('es-CO', {
+            dateStyle: 'medium',
+            timeStyle: 'medium'
+          }),
+        fecha_hora_salida: record.fecha_hora_salida 
+          ? new Date(record.fecha_hora_salida).toLocaleString('es-CO', {
+              dateStyle: 'medium',
+              timeStyle: 'medium'
+            })
+          : 'Pendiente'
+      }));
+
+      res.status(200).json({
+        success: true,
+        data: formattedResults,
+        total: formattedResults.length
+      });
     });
   },
 
@@ -28,93 +52,78 @@ const controlAccesoController = {
   create: async (req, res) => {
     const { 
       persona_id, 
-      tipo_movimiento, 
-      fecha_hora,
+      observaciones,
       vehiculo,
       elemento
     } = req.body;
 
-    // Validar campos requeridos
-    if (!persona_id || !tipo_movimiento) {
+    if (!persona_id) {
       return res.status(400).json({ 
-        error: 'persona_id y tipo_movimiento son requeridos' 
+        success: false,
+        message: 'El ID de la persona es requerido'
       });
     }
 
     try {
-      // Crear metodo de acceso
+      let vehiculoId = null;
+      let elementoId = null;
+
+      // Manejar vehículo si está presente
+      if (vehiculo && vehiculo.placa && vehiculo.tipo_vehiculo) {
+        try {
+          const vehiculoResult = await new Promise((resolve, reject) => {
+            Vehiculo.create(vehiculo, (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+            });
+          });
+          vehiculoId = vehiculoResult.insertId;
+        } catch (error) {
+          console.error('Error creating vehicle:', error);
+        }
+      }
+
+      // Manejar elemento si está presente
+      if (elemento && elemento.tipo_elemento && elemento.serial) {
+        try {
+          const elementoResult = await new Promise((resolve, reject) => {
+            Elemento.create(elemento, (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+            });
+          });
+          elementoId = elementoResult.insertId;
+        } catch (error) {
+          console.error('Error creating element:', error);
+        }
+      }
+
       ControlAcceso.create({
         persona_id,
-        tipo_movimiento,
-        fecha_hora: fecha_hora || new Date()
-      }, async (err, result) => {
+        observaciones,
+        vehiculo_id: vehiculoId,
+        elemento_id: elementoId
+      }, (err, result) => {
         if (err) {
-          console.error('Error creating access record:', err);
+          console.error('Error al crear registro:', err);
           return res.status(500).json({ 
-            error: 'Error al crear el registro' 
+            success: false,
+            message: 'Error al crear el registro'
           });
         }
 
-        const registro_id = result.insertId;
-        let vehiculoId = null;
-        let elementoId = null;
-
-        // Manejar vehículo si está presente
-        if (vehiculo && vehiculo.placa && vehiculo.tipo_vehiculo) {
-          try {
-            const vehiculoResult = await new Promise((resolve, reject) => {
-              Vehiculo.create(vehiculo, (err, result) => {
-                if (err) reject(err);
-                else resolve(result);
-              });
-            });
-            vehiculoId = vehiculoResult.insertId;
-          } catch (error) {
-            console.error('Error creating vehicle:', error);
-          }
-        }
-
-        // Manejar elemento si está presente
-        if (elemento && elemento.tipo_elemento && elemento.serial) {
-          try {
-            const elementoResult = await new Promise((resolve, reject) => {
-              Elemento.create(elemento, (err, result) => {
-                if (err) reject(err);
-                else resolve(result);
-              });
-            });
-            elementoId = elementoResult.insertId;
-          } catch (error) {
-            console.error('Error creating element:', error);
-          }
-        }
-
-        // Actualizar registro de acceso con IDs relacionados si es necesario
-        if (vehiculoId || elementoId) {
-          const updateData = {};
-          if (vehiculoId) updateData.vehiculo_id = vehiculoId;
-          if (elementoId) updateData.elemento_id = elementoId;
-
-          ControlAcceso.update(registro_id, updateData, (updateErr) => {
-            if (updateErr) {
-              console.error('Error updating references:', updateErr);
-            }
-          });
-        }
-
-        res.status(201).json({ 
+        res.status(201).json({
           success: true,
-          message: 'Registro creado correctamente', 
-          id: registro_id,
-          vehiculo_id: vehiculoId,
-          elemento_id: elementoId
+          message: 'Registro creado correctamente',
+          id: result.insertId
         });
       });
 
     } catch (error) {
-      console.error('Error in create controller:', error);
-      res.status(500).json({ 
-        error: 'Error interno del servidor' 
+      console.error('Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor'
       });
     }
   },
