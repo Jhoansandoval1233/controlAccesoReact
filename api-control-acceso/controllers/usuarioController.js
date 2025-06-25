@@ -1,4 +1,5 @@
 const Usuario = require('../models/usuarioModel');
+const bcrypt = require('bcrypt');
 
 exports.getUsuarios = (req, res) => {
   Usuario.getAll((err, results) => {
@@ -16,19 +17,15 @@ exports.getUsuarioById = (req, res) => {
   });
 };
 
-exports.createUsuario = (req, res) => {
+exports.createUsuario = async (req, res) => {
     console.log('Request body:', req.body);
 
-    // Validar si el cuerpo de la solicitud está vacío
     if (!req.body || Object.keys(req.body).length === 0) {
-        return res.status(400).json({
-            error: 'El cuerpo de la solicitud está vacío'
-        });
+        return res.status(400).json({ error: 'El cuerpo de la solicitud está vacío' });
     }
 
     const { email, password, rol } = req.body;
 
-    // Validar campos requeridos
     if (!email || !password || !rol) {
         return res.status(400).json({
             error: 'Todos los campos son requeridos',
@@ -40,54 +37,49 @@ exports.createUsuario = (req, res) => {
         });
     }
 
-    // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            error: 'Formato de email inválido'
-        });
+        return res.status(400).json({ error: 'Formato de email inválido' });
     }
 
-    // Validar valores enumerados de rol
     const rolesValidos = ['admin', 'usuario'];
     if (!rolesValidos.includes(rol)) {
-        return res.status(400).json({
-            error: 'Rol inválido',
-            permitidos: rolesValidos,
-            recibido: rol
-        });
+        return res.status(400).json({ error: 'Rol inválido', permitidos: rolesValidos, recibido: rol });
     }
 
-    const nuevoUsuario = {
-        email,
-        password, 
-        rol
-        // fecha_creacion y ultimo_acceso los maneja MySQL
-    };
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    Usuario.create(nuevoUsuario, (err, result) => {
-        if (err) {
-            console.error('Error al crear usuario:', err);
-            if (err.code === 'ER_DUP_ENTRY') {
-                return res.status(400).json({ 
-                    error: 'El email ya está registrado' 
-                });
+        const nuevoUsuario = {
+            email,
+            password: hashedPassword,
+            rol
+        };
+
+        Usuario.create(nuevoUsuario, (err, result) => {
+            if (err) {
+                console.error('Error al crear usuario:', err);
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(400).json({ error: 'El email ya está registrado' });
+                }
+                return res.status(500).json({ error: 'Error al crear el usuario' });
             }
-            return res.status(500).json({ 
-                error: 'Error al crear el usuario' 
+
+            res.status(201).json({
+                message: 'Usuario creado exitosamente',
+                id: result.insertId,
+                usuario: {
+                    ...nuevoUsuario,
+                    password: undefined
+                }
             });
-        }
-        
-        res.status(201).json({
-            message: 'Usuario creado exitosamente',
-            id: result.insertId,
-            usuario: {
-                ...nuevoUsuario,
-                password: undefined 
-            }
         });
-    });
+    } catch (err) {
+        console.error('Error en hashing o creación:', err);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 };
+
 
 exports.updateUsuario = (req, res) => {
   const id = req.params.id;
@@ -119,7 +111,7 @@ exports.login = async (req, res) => {
 
     try {
         // Buscar usuario por email
-        Usuario.getByEmail(email, (err, results) => {
+        Usuario.getByEmail(email, async (err, results) => {
             if (err) {
                 console.error('Error en login:', err);
                 return res.status(500).json({
@@ -137,31 +129,33 @@ exports.login = async (req, res) => {
 
             const user = results[0];
 
-            // En producción, usar bcrypt.compare
-            if (password === user.password) {
-                // Actualizar último acceso
-                Usuario.updateLastAccess(user.id, (updateErr) => {
-                    if (updateErr) {
-                        console.error('Error actualizando último acceso:', updateErr);
-                    }
-                });
+            // ✅ Comparar contraseña con bcrypt
+            const isMatch = await bcrypt.compare(password, user.password);
 
-                // Enviar respuesta exitosa
-                res.json({
-                    success: true,
-                    message: 'Login exitoso',
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        rol: user.rol
-                    }
-                });
-            } else {
-                res.status(401).json({
+            if (!isMatch) {
+                return res.status(401).json({
                     success: false,
                     message: 'Credenciales inválidas'
                 });
             }
+
+            // ✅ Login exitoso
+            Usuario.updateLastAccess(user.id, (updateErr) => {
+                if (updateErr) {
+                    console.error('Error actualizando último acceso:', updateErr);
+                }
+            });
+
+            return res.json({
+                success: true,
+                message: 'Login exitoso',
+                token: 'abc123', // si usas JWT, reemplaza esto por jwt.sign(...)
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    rol: user.rol
+                }
+            });
         });
     } catch (error) {
         console.error('Error en login:', error);
@@ -171,6 +165,7 @@ exports.login = async (req, res) => {
         });
     }
 };
+
 
 exports.registro = async (req, res) => {
     console.log('Request body:', req.body);
@@ -230,10 +225,13 @@ exports.registro = async (req, res) => {
                 });
             }
 
+            // 🔐 Cifrar la contraseña antes de guardar
+            const hashedPassword = await bcrypt.hash(password, 10);
+
             // Crear el usuario
             const userData = {
                 email,
-                password, 
+                password: hashedPassword,
                 rol,
                 nombre,  
                 apellido,  
@@ -259,60 +257,6 @@ exports.registro = async (req, res) => {
         });
     } catch (error) {
         console.error('Error en registro:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor'
-        });
-    }
-};
-
-exports.restablecerContrasena = async (req, res) => {
-    const { documento, nombre, nuevaContrasena } = req.body;
-
-    // Validar campos requeridos
-    if (!documento || !nombre || !nuevaContrasena) {
-        return res.status(400).json({
-            success: false,
-            message: 'Todos los campos son requeridos'
-        });
-    }
-
-    try {
-        // Buscar usuario por documento y nombre
-        Usuario.findByDocumentoAndNombre(documento, nombre, (err, results) => {
-            if (err) {
-                console.error('Error buscando usuario:', err);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Error al buscar usuario'
-                });
-            }
-
-            if (results.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'No se encontró un usuario con esos datos'
-                });
-            }
-
-            // Actualizar contraseña
-            Usuario.updatePassword(results[0].id, nuevaContrasena, (updateErr) => {
-                if (updateErr) {
-                    console.error('Error actualizando contraseña:', updateErr);
-                    return res.status(500).json({
-                        success: false,
-                        message: 'Error al actualizar la contraseña'
-                    });
-                }
-
-                res.json({
-                    success: true,
-                    message: 'Contraseña actualizada exitosamente'
-                });
-            });
-        });
-    } catch (error) {
-        console.error('Error en restablecer contraseña:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'

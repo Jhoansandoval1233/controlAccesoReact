@@ -39,14 +39,19 @@ const Usuario = {
             data.email.toLowerCase(),
             data.password,
             data.rol,
-            data.nombres,
-            data.apellidos,
+            data.nombre,
+            data.apellido,
             data.numero_documento,
             data.telefono || null
         ];
 
         console.log('Creating user with data:', {
-            ...values,
+            email: data.email,
+            rol: data.rol,
+            nombre: data.nombre,
+            apellido: data.apellido,
+            numero_documento: data.numero_documento,
+            telefono: data.telefono,
             password: '[PROTECTED]'
         });
 

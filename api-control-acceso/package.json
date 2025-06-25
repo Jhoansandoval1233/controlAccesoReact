@@ -12,6 +12,7 @@
   "license": "MIT",
   "description": "Proyecto de control de acceso a una base de datos MySQL utilizando Express",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
