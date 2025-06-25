@@ -6,6 +6,7 @@ import AlertComponent from './AlertComponent';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Modal from './ui/Modal';
+import api from '../api/api';
 
 const RegistrosFormComponent = () => {
   const [documento, setDocumento] = useState('');

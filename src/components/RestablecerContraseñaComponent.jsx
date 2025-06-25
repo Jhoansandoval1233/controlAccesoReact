@@ -4,6 +4,7 @@ import Card from './ui/Card';
 import InputField from './ui/InputField';
 import Button from './ui/Button';
 import AlertComponent from './AlertComponent';
+import api from '../api/api';
 
 export default function RestablecerContrasena() {
   const navigate = useNavigate();

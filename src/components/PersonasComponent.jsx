@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 import AlertComponent from "./AlertComponent";
+import api from '../api/api';
 
 const PersonasComponent = () => {
   const [loading, setLoading] = useState(false);

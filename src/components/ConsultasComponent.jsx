@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Card from "./ui/Card";
 import Button from "./ui/Button";
+import api from '../api/api';
 
 const ConsultasComponent = () => {
   const [searchQuery, setSearchQuery] = useState(""); // Estado para el campo de búsqueda
@@ -12,12 +13,16 @@ const ConsultasComponent = () => {
   };
 
   // Función para realizar la búsqueda
-  const handleSearch = () => {
-    // Filtra los registros por ID si coincide con el texto de búsqueda
-    const filteredResults = registros.filter((registro) =>
-      registro.id.toString().includes(searchQuery)
-    );
-    setResultados(filteredResults);
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+  
+    try {
+      const response = await api.get(`/registro/${searchQuery}`);
+      setResultados([response.data]);
+    } catch (error) {
+      console.error("Error al buscar registro:", error.message);
+      setResultados([]); 
+    }
   };
 
   // Función para exportar los registros (esto es solo un ejemplo)

@@ -5,6 +5,7 @@ import InputField from './ui/InputField';
 import AlertComponent from './AlertComponent';
 import Button from './ui/Button';
 import Card from './ui/Card';
+import api from '../api/api';
 
 const LoginComponent = () => {
   const [email, setEmail] = useState('');
