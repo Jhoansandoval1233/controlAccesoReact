@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import InputField from './ui/InputField';
 import SelectDropdown from './ui/SelectDropdown';
 import AlertComponent from './AlertComponent';
 import Button from './ui/Button';
 import Card from './ui/Card';
+import Modal from './ui/Modal';
 
 const RegistrosFormComponent = () => {
   const [documento, setDocumento] = useState('');
@@ -15,45 +17,134 @@ const RegistrosFormComponent = () => {
   const [tipoElemento, setTipoElemento] = useState('');
   const [serial, setSerial] = useState('');
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // Agrega función para verificar si la persona existe
+  const checkPersonExists = async (documento) => {
+    try {
+      const response = await fetch(`http://localhost:4000/api/persona/documento/${documento}`);
+      const data = await response.json(); // Parse JSON even for 404 response
 
-    if (!documento) {
+      // Manejo de error 404 
+      if (response.status === 404) {
+        console.log('Persona no encontrada, mostrando modal...');
+        setShowModal(true);
+        return null;
+      }
+
+      // Manejo de otros errores
+      if (!response.ok) {
+        throw new Error(`Error al verificar el documento: ${data.message || response.statusText}`);
+      }
+
+      return data.persona;
+
+    } catch (error) {
+      console.error('Error en checkPersonExists:', error);
       setAlert({
         show: true,
         type: 'danger',
-        message: 'El documento es obligatorio.',
+        message: 'Error al verificar el documento. Por favor, intente nuevamente.'
       });
-      return;
+      return null;
     }
+  };
 
-    console.log({
-      documento,
-      tipoAcceso,
-      incluyeVehiculo,
-      tipoVehiculo,
-      placaVehiculo,
-      incluyeElemento,
-      tipoElemento,
-      serial,
+  // Agrega función para manejar la redirección de registro
+  const handleRegistrarPersona = () => {
+    setShowModal(false); // Cerrar modal antes de navegar
+    navigate('/personas', { 
+      state: { documento },
+      replace: false // Permitir volver atrás
     });
+  };
 
-    setAlert({
-      show: true,
-      type: 'success',
-      message: 'Registro guardado exitosamente.',
-    });
+  // Modificar handleSubmit para incluir validación
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setAlert({ show: false }); // Limpiar cualquier alerta anterior
 
-    // Limpiar formulario
-    setDocumento('');
-    setTipoAcceso('entrada');
-    setIncluyeVehiculo(false);
-    setTipoVehiculo('');
-    setPlacaVehiculo('');
-    setIncluyeElemento(false);
-    setTipoElemento('');
-    setSerial('');
+    try {
+      if (!documento) {
+        setAlert({
+          show: true,
+          type: 'danger',
+          message: 'El documento es obligatorio.',
+        });
+        return;
+      }
+
+      console.log('Verificando documento:', documento);
+      const person = await checkPersonExists(documento);
+      
+      if (!person) {
+        console.log('Persona no encontrada');
+        return; // Modal will be shown by checkPersonExists
+      }
+
+      // Preparar datos para el registro
+      const registroData = {
+        persona_id: person.id,
+        tipo_movimiento: tipoAcceso,
+        fecha_hora: new Date().toISOString()
+      };
+
+      // Si incluye vehículo, agregar datos del vehículo
+      if (incluyeVehiculo && tipoVehiculo && placaVehiculo) {
+        registroData.vehiculo = {
+          tipo_vehiculo: tipoVehiculo,
+          placa: placaVehiculo
+        };
+      }
+
+      // Si incluye elemento, agregar datos del elemento
+      if (incluyeElemento && tipoElemento && serial) {
+        registroData.elemento = {
+          tipo_elemento: tipoElemento,
+          serial: serial
+        };
+      }
+
+      // Enviar registro al backend
+      const response = await fetch('http://localhost:4000/api/control_acceso', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registroData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar el registro');
+      }
+
+      const data = await response.json();
+
+      setAlert({
+        show: true,
+        type: 'success',
+        message: `Registro guardado exitosamente para ${person.nombre} ${person.apellido}`,
+      });
+
+      // Limpiar formulario
+      setDocumento('');
+      setTipoAcceso('entrada');
+      setIncluyeVehiculo(false);
+      setTipoVehiculo('');
+      setPlacaVehiculo('');
+      setIncluyeElemento(false);
+      setTipoElemento('');
+      setSerial('');
+
+    } catch (error) {
+      console.error('Error en el envío:', error);
+      setAlert({
+        show: true,
+        type: 'danger',
+        message: 'Error al procesar la solicitud. Por favor, intente nuevamente.'
+      });
+    }
   };
 
   return (
@@ -155,6 +246,32 @@ const RegistrosFormComponent = () => {
           </Button>
         </form>
       </Card>
+
+      {/* Modal para persona no encontrada */}
+      <Modal 
+        show={showModal} 
+        onClose={() => setShowModal(false)}
+        title="Persona no registrada"
+        footer={
+          <>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowModal(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={handleRegistrarPersona}
+            >
+              Registrar Persona
+            </Button>
+          </>
+        }
+      >
+        <p>La persona con documento <strong>{documento}</strong> no está registrada en el sistema.</p>
+        <p>¿Desea registrar esta persona?</p>
+      </Modal>
     </div>
   );
 };

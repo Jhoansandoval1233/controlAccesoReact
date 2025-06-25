@@ -11,6 +11,11 @@ const Usuario = {
         db.query(sql, [id], callback);
     },
 
+    getByEmail: (email, callback) => {
+        const sql = 'SELECT * FROM usuarios WHERE email = ?';
+        db.query(sql, [email], callback);
+    },
+
     create: (data, callback) => {
         // Validar rol 
         const rolesValidos = ['admin', 'usuario'];
@@ -22,14 +27,22 @@ const Usuario = {
             INSERT INTO usuarios (
                 email,
                 password,
-                rol
-            ) VALUES (?, ?, ?)
+                rol,
+                nombre,
+                apellido,
+                numero_documento,
+                telefono
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
             data.email.toLowerCase(),
             data.password,
-            data.rol
+            data.rol,
+            data.nombres,
+            data.apellidos,
+            data.numero_documento,
+            data.telefono || null
         ];
 
         console.log('Creating user with data:', {
@@ -46,6 +59,11 @@ const Usuario = {
         });
     },
 
+    updateLastAccess: (userId, callback) => {
+        const sql = 'UPDATE usuarios SET ultimo_acceso = CURRENT_TIMESTAMP WHERE id = ?';
+        db.query(sql, [userId], callback);
+    },
+
     delete: (id, callback) => {
         const sql = 'DELETE FROM usuarios WHERE id = ?';
         db.query(sql, [id], (error, results) => {
@@ -55,6 +73,20 @@ const Usuario = {
             }
             callback(null, results);
         });
+    },
+
+    findByDocumentoAndNombre: (documento, nombre, callback) => {
+        const sql = `
+            SELECT * FROM usuarios 
+            WHERE numero_documento = ? 
+            AND CONCAT(nombre, ' ', apellido) LIKE ?
+        `;
+        db.query(sql, [documento, `%${nombre}%`], callback);
+    },
+
+    updatePassword: (userId, newPassword, callback) => {
+        const sql = 'UPDATE usuarios SET password = ? WHERE id = ?';
+        db.query(sql, [newPassword, userId], callback);
     }
 };
 

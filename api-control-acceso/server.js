@@ -1,6 +1,8 @@
 require('dotenv').config();
 const app = require('./app');
 
+app.use('/api/persona', require('./routes/personaRoutes'));
+
 const PORT = process.env.PORT || 4000;
 
 const server = app.listen(PORT, () => {

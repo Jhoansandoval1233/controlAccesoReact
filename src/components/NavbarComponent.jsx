@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import '../styles.css';
 import Button from './ui/Button';
@@ -6,9 +6,16 @@ import Button from './ui/Button';
 const NavbarComponent = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Check authentication on component mount
+    if (!localStorage.getItem('authenticated')) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
+
   const handleLogout = () => {
-    localStorage.removeItem('authenticated');
-    navigate('/login');
+    localStorage.clear(); // Limpiar localStorage
+    navigate('/login', { replace: true }); // Usar replace para evitar volver atrás
   };
 
   return (
