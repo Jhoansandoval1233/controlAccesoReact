@@ -4,8 +4,8 @@ import Button from "./ui/Button";
 import api from '../api/api';
 
 const ConsultasComponent = () => {
-  const [searchQuery, setSearchQuery] = useState(""); // Estado para el campo de búsqueda
-  const [resultados, setResultados] = useState([]); // Estado para los resultados de la búsqueda
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [resultados, setResultados] = useState([]);
 
   // Función para manejar el cambio en el campo de búsqueda
   const handleSearchChange = (event) => {
@@ -17,8 +17,8 @@ const ConsultasComponent = () => {
     if (!searchQuery.trim()) return;
   
     try {
-      const response = await api.get(`/registro/${searchQuery}`);
-      setResultados([response.data]);
+      const response = await api.get(`/control-acceso/documento/${searchQuery}`);
+      setResultados(response.data.data || []);
     } catch (error) {
       console.error("Error al buscar registro:", error.message);
       setResultados([]); 
@@ -73,26 +73,39 @@ const ConsultasComponent = () => {
               </tr>
             </thead>
             <tbody>
-              {resultados.length > 0 ? (
-                resultados.map((registro) => (
-                  <tr key={registro.id} className="table-row">
-                    <td>{registro.id}</td>
-                    <td>{registro.fecha}</td>
-                    <td>{registro.entrada}</td>
-                    <td>{registro.salida}</td>
-                    <td>{registro.persona}</td>
-                    <td>{registro.cargo}</td>
-                    <td>{registro.observaciones || '-'}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="text-center py-4 text-muted">
-                    No se encontraron registros
-                  </td>
-                </tr>
+               {resultados.length > 0 ? (
+                 resultados.map((registro, index) => {
+                  const [fecha, horaCompleta] = registro.fecha_hora_ingreso
+                    ? registro.fecha_hora_ingreso.split(',')
+                    : ['-', '-'];
+                  const hora = horaCompleta
+                    ? horaCompleta.trim().split(':').slice(0, 2).join(':') + ' ' + horaCompleta.trim().slice(-4)
+                    : '-';
+
+                  return (
+                    <tr key={index} className="table-row">
+                     <td>{registro.numero_documento}</td>
+                     <td>{fecha}</td>
+                     <td>{hora}</td>
+                     <td>
+                         {registro.fecha_hora_salida && registro.fecha_hora_salida.includes(',')
+                          ? registro.fecha_hora_salida.split(',')[1].trim()
+                         : 'Pendiente'}
+                     </td>
+                     <td>{registro.nombre_completo}</td>
+                     <td>{registro.tipo_rol}</td>
+                     <td>{registro.observaciones || '-'}</td>
+                   </tr>
+                 );
+              })
+            ) : (
+                 <tr>
+                   <td colSpan="7" className="text-center py-4 text-muted">
+                      No se encontraron registros
+                   </td>
+                 </tr>
               )}
-            </tbody>
+           </tbody>
           </table>
         </div>
       </Card>

@@ -31,7 +31,7 @@ app.use((req, res, next) => {
 
 
 // Rutas
-app.use('/api/control_acceso', controlAccesoRoutes);
+app.use('/api/control-acceso', controlAccesoRoutes);
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/persona', personaRoutes);
 app.use('/api/vehiculo', vehiculoRoutes);

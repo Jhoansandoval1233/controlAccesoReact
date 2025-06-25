@@ -1,6 +1,7 @@
 const ControlAcceso = require('../models/controlAccesoModels');
 const Vehiculo = require('../models/vehiculoModel');
 const Elemento = require('../models/elementoModel');
+const db = require('../config/db');
 
 const controlAccesoController = {
   getAll: (req, res) => {
@@ -36,68 +37,135 @@ const controlAccesoController = {
     });
   },
 
-  getById: (req, res) => {
-    const { id } = req.params;
-    ControlAcceso.getById(id, (err, result) => {
+  getByDocumento: (req, res) => {
+    const { numero_documento } = req.params;
+  
+    ControlAcceso.getByDocumento(numero_documento, (err, results) => {
       if (err) {
-        return res.status(500).json({ error: 'Error al obtener el registro' });
+        console.error('Error al buscar por documento:', err);
+        return res.status(500).json({ 
+          success: false,
+          message: 'Error al buscar registros por documento'
+        });
       }
-      if (result.length === 0) {
-        return res.status(404).json({ error: 'Registro no encontrado' });
+  
+      if (results.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'No se encontraron registros con ese documento'
+        });
       }
-      res.status(200).json(result[0]);
+  
+      const formattedResults = results.map(record => ({
+        ...record,
+        fecha_hora_ingreso: new Date(record.fecha_hora_ingreso)
+          .toLocaleString('es-CO', {
+            dateStyle: 'medium',
+            timeStyle: 'medium'
+          }),
+        fecha_hora_salida: record.fecha_hora_salida 
+          ? new Date(record.fecha_hora_salida).toLocaleString('es-CO', {
+              dateStyle: 'medium',
+              timeStyle: 'medium'
+            })
+          : null
+      }));
+  
+      res.status(200).json({
+        success: true,
+        data: formattedResults
+      });
     });
   },
 
   create: async (req, res) => {
-    const { 
-      persona_id, 
-      observaciones,
-      vehiculo,
-      elemento
-    } = req.body;
-
-    if (!persona_id) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'El ID de la persona es requerido'
-      });
-    }
-
+    let { persona_id, numero_documento, observaciones, vehiculo, elemento, tipo_movimiento } = req.body;
+  
     try {
+      // Buscar persona por número de documento si no se envía el ID
+      if (!persona_id && numero_documento) {
+        const personaResult = await new Promise((resolve, reject) => {
+          const sql = 'SELECT id FROM personas WHERE numero_documento = ? LIMIT 1';
+          db.query(sql, [numero_documento], (err, rows) => err ? reject(err) : resolve(rows));
+        });
+  
+        if (personaResult.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: 'Persona no encontrada con ese documento'
+          });
+        }
+  
+        persona_id = personaResult[0].id;
+      }
+  
+      if (!persona_id) {
+        return res.status(400).json({
+          success: false,
+          message: 'El ID de la persona es requerido'
+        });
+      }
+  
+      if (tipo_movimiento === 'salida') {
+        const query = `
+          SELECT id FROM registros 
+          WHERE persona_id = ? AND fecha_hora_salida IS NULL 
+          ORDER BY fecha_hora_ingreso DESC LIMIT 1
+        `;
+        db.query(query, [persona_id], (err, results) => {
+          if (err) {
+            console.error('Error al consultar último ingreso:', err);
+            return res.status(500).json({
+              success: false,
+              message: 'Error al buscar registros pendientes'
+            });
+          }
+  
+          if (results.length === 0) {
+            return res.status(404).json({
+              success: false,
+              message: 'No hay entradas pendientes para esta persona'
+            });
+          }
+  
+          const registroId = results[0].id;
+          ControlAcceso.updateSalida(registroId, (err, result) => {
+            if (err) {
+              console.error('Error al registrar salida:', err);
+              return res.status(500).json({
+                success: false,
+                message: 'Error al registrar la salida'
+              });
+            }
+  
+            return res.status(200).json({
+              success: true,
+              message: 'Salida registrada correctamente'
+            });
+          });
+        });
+  
+        return;
+      }
+  
+      // Registrar entrada
       let vehiculoId = null;
       let elementoId = null;
-
-      // Manejar vehículo si está presente
+  
       if (vehiculo && vehiculo.placa && vehiculo.tipo_vehiculo) {
-        try {
-          const vehiculoResult = await new Promise((resolve, reject) => {
-            Vehiculo.create(vehiculo, (err, result) => {
-              if (err) reject(err);
-              else resolve(result);
-            });
-          });
-          vehiculoId = vehiculoResult.insertId;
-        } catch (error) {
-          console.error('Error creating vehicle:', error);
-        }
+        const vehiculoResult = await new Promise((resolve, reject) => {
+          Vehiculo.create(vehiculo, (err, result) => err ? reject(err) : resolve(result));
+        });
+        vehiculoId = vehiculoResult.insertId;
       }
-
-      // Manejar elemento si está presente
+  
       if (elemento && elemento.tipo_elemento && elemento.serial) {
-        try {
-          const elementoResult = await new Promise((resolve, reject) => {
-            Elemento.create(elemento, (err, result) => {
-              if (err) reject(err);
-              else resolve(result);
-            });
-          });
-          elementoId = elementoResult.insertId;
-        } catch (error) {
-          console.error('Error creating element:', error);
-        }
+        const elementoResult = await new Promise((resolve, reject) => {
+          Elemento.create(elemento, (err, result) => err ? reject(err) : resolve(result));
+        });
+        elementoId = elementoResult.insertId;
       }
-
+  
       ControlAcceso.create({
         persona_id,
         observaciones,
@@ -106,41 +174,28 @@ const controlAccesoController = {
       }, (err, result) => {
         if (err) {
           console.error('Error al crear registro:', err);
-          return res.status(500).json({ 
+          return res.status(500).json({
             success: false,
             message: 'Error al crear el registro'
           });
         }
-
+  
         res.status(201).json({
           success: true,
-          message: 'Registro creado correctamente',
+          message: 'Registro de entrada creado correctamente',
           id: result.insertId
         });
       });
-
+  
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error en create:', error);
       res.status(500).json({
         success: false,
         message: 'Error interno del servidor'
       });
     }
-  },
-
-  update: (req, res) => {
-    const { id } = req.params;
-    const updateData = req.body;
-    ControlAcceso.update(id, updateData, (err, result) => {
-      if (err) {
-        return res.status(500).json({ error: 'Error al actualizar el registro' });
-      }
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'Registro no encontrado' });
-      }
-      res.status(200).json({ message: 'Registro actualizado correctamente' });
-    });
-  },
+  }
+,  
 
   delete: (req, res) => {
     const { id } = req.params;

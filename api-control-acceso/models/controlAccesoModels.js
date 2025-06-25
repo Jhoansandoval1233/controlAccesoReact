@@ -7,7 +7,7 @@ const ControlAcceso = {
         p.numero_documento,
         r.fecha_hora_ingreso,
         r.fecha_hora_salida,
-        CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+        CONCAT(p.nombre, ' ', p.apellido) AS nombre_completo,
         p.tipo_rol,
         r.observaciones
       FROM registros r
@@ -18,6 +18,24 @@ const ControlAcceso = {
       LIMIT 10
     `;
     db.query(query, callback);
+  },
+
+  getByDocumento: (numeroDocumento, callback) => {
+    const sql = `
+      SELECT 
+        r.id,
+        p.numero_documento,
+        r.fecha_hora_ingreso,
+        r.fecha_hora_salida,
+        CONCAT(p.nombre, ' ', p.apellido) AS nombre_completo,
+        p.tipo_rol,
+        r.observaciones
+      FROM registros r
+      INNER JOIN personas p ON r.persona_id = p.id
+      WHERE p.numero_documento = ?
+      ORDER BY r.fecha_hora_ingreso DESC
+    `;
+    db.query(sql, [numeroDocumento], callback);
   },
 
   create: (data, callback) => {
@@ -41,16 +59,13 @@ const ControlAcceso = {
     db.query(sql, values, callback);
   },
 
-  // Para registrar la salida
   updateSalida: (registroId, callback) => {
     const sql = `
-      UPDATE registros 
+      UPDATE registros
       SET fecha_hora_salida = NOW()
-      WHERE id = ?
+      WHERE id = ? AND fecha_hora_salida IS NULL
     `;
-    
     db.query(sql, [registroId], callback);
   }
 };
-
 module.exports = ControlAcceso;
