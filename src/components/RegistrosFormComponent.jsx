@@ -6,6 +6,7 @@ import AlertComponent from './AlertComponent';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Modal from './ui/Modal';
+import api from '../api/api';
 
 const RegistrosFormComponent = () => {
   const [documento, setDocumento] = useState('');
@@ -107,7 +108,7 @@ const RegistrosFormComponent = () => {
       }
 
       // Enviar registro al backend
-      const response = await fetch('http://localhost:4000/api/control_acceso', {
+      const response = await fetch('http://localhost:4000/api/control-acceso', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
