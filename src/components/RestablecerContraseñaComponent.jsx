@@ -10,52 +10,43 @@ export default function RestablecerContrasena() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+
+  // 💡 Cambiar nombres para coincidir con backend
   const [form, setForm] = useState({
-    documento: '',
-    nombre: '',
-    nuevaContrasena: ''
+    numero_documento: '',
+    nombre_completo: '',
+    nueva_contrasena: ''
   });
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setAlert({ show: false });
 
     try {
-      const res = await fetch('http://localhost:4000/api/usuario/restablecer', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+      const response = await api.put('/usuario/restablecer', form);
+      console.log(response.data);
+      setAlert({
+        show: true,
+        type: 'success',
+        message: 'Contraseña actualizada exitosamente',
       });
 
-      const data = await res.json();
-      
-      if (res.ok) {
-        setAlert({
-          show: true,
-          type: 'success',
-          message: 'Contraseña actualizada exitosamente'
-        });
-        
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
-      } else {
-        setAlert({
-          show: true,
-          type: 'danger',
-          message: data.message
-        });
-      }
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
     } catch (err) {
+      console.error('Error al restablecer contraseña:', err);
+      const message =
+        err.response?.data?.message || 'Error al conectar con el servidor';
       setAlert({
         show: true,
         type: 'danger',
-        message: 'Error al conectar con el servidor'
+        message,
       });
     } finally {
       setLoading(false);
@@ -72,9 +63,9 @@ export default function RestablecerContrasena() {
         <form onSubmit={handleSubmit}>
           <InputField
             label="Número de documento"
-            name="documento"
+            name="numero_documento"
             type="text"
-            value={form.documento}
+            value={form.numero_documento}
             onChange={handleChange}
             required
             disabled={loading}
@@ -82,9 +73,9 @@ export default function RestablecerContrasena() {
 
           <InputField
             label="Nombre completo"
-            name="nombre"
+            name="nombre_completo"
             type="text"
-            value={form.nombre}
+            value={form.nombre_completo}
             onChange={handleChange}
             required
             disabled={loading}
@@ -92,19 +83,15 @@ export default function RestablecerContrasena() {
 
           <InputField
             label="Nueva contraseña"
-            name="nuevaContrasena"
+            name="nueva_contrasena"
             type="password"
-            value={form.nuevaContrasena}
+            value={form.nueva_contrasena}
             onChange={handleChange}
             required
             disabled={loading}
           />
 
-          <Button
-            type="submit"
-            variant="success"
-            disabled={loading}
-          >
+          <Button type="submit" variant="success" disabled={loading}>
             {loading ? 'Procesando...' : 'Restablecer Contraseña'}
           </Button>
 

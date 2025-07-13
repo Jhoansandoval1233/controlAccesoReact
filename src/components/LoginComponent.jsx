@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+//import axios from 'axios';
 import InputField from './ui/InputField';
 import AlertComponent from './AlertComponent';
 import Button from './ui/Button';
@@ -37,7 +37,7 @@ const LoginComponent = () => {
         return;
       }
 
-      const response = await axios.post('http://localhost:4000/api/usuario/login', {
+      const response = await api.post('http://localhost:4000/api/usuario/login', {
         email,
         password
       });

@@ -1,111 +1,129 @@
 import React, { useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import Card from "./ui/Card";
 import Button from "./ui/Button";
 import api from '../api/api';
 
 const ConsultasComponent = () => {
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
   const [resultados, setResultados] = useState([]);
 
-  // Función para manejar el cambio en el campo de búsqueda
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
+  const handleSearchChange = (e) => setSearchQuery(e.target.value);
 
-  // Función para realizar la búsqueda
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-  
     try {
-      const response = await api.get(`/control-acceso/documento/${searchQuery}`);
-      setResultados(response.data.data || []);
-    } catch (error) {
-      console.error("Error al buscar registro:", error.message);
-      setResultados([]); 
+      const { data } = await api.get(`/control-acceso/documento/${searchQuery}`);
+      setResultados(data.data || []);
+    } catch (err) {
+      console.error("Error al buscar registro:", err);
+      setResultados([]);
     }
   };
 
-  // Función para exportar los registros (esto es solo un ejemplo)
   const handleExport = () => {
-    alert("Funcionalidad de exportar aún no implementada.");
+    if (!resultados.length) return alert("No hay datos para exportar.");
+
+    const doc = new jsPDF();
+    doc.text("Registros de Acceso", 14, 15);
+
+    const headers = [
+      "Documento",
+      "Fecha",
+      "Entrada",
+      "Salida",
+      "Persona",
+      "Cargo",
+      "Tipo vehículo",
+      "Placa",
+      "Tipo elemento",
+      "Serial"
+    ];
+
+    const rows = resultados.map(r => {
+      const [fecha, horaIngreso] = r.fecha_hora_ingreso?.split(',') || ['-', '-'];
+      const horaSalida = r.fecha_hora_salida?.split(',')[1]?.trim() || 'Pendiente';
+      return [
+        r.numero_documento,
+        fecha,
+        horaIngreso,
+        horaSalida,
+        r.nombre_completo,
+        r.tipo_rol,
+        r.tipo_vehiculo || '-',
+        r.placa || '-',
+        r.tipo_elemento || '-',
+        r.serial || '-'
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 20,
+      head: [headers],
+      body: rows,
+      styles: { fontSize: 8 }
+    });
+
+    doc.save("registros_acceso.pdf");
   };
 
   return (
     <div className="container mt-5">
       <Card title="Consultar registros">
-        {/* Barra de búsqueda y botones */}
-        <div className="row g-3 mb-4">
-          <div className="col-md-8">
-            <div className="search-wrapper">
-              <input
-                type="text"
-                className="form-control search-input"
-                placeholder="Buscar por ID..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-            </div>
+        <div className="row mb-3">
+          <div className="col-8">
+            <input
+              className="form-control"
+              placeholder="Buscar por documento..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
           </div>
-          <div className="col-md-4">
-            <div className="d-flex gap-2">
-              <Button variant="primary" onClick={handleSearch} className="flex-grow-1">
-                Buscar
-              </Button>
-              <Button variant="secondary" onClick={handleExport} className="flex-grow-1">
-                Exportar
-              </Button>
-            </div>
+          <div className="col-4 d-flex gap-2">
+            <Button variant="primary" onClick={handleSearch}>Buscar</Button>
+            <Button variant="secondary" onClick={handleExport}>Exportar</Button>
           </div>
         </div>
 
-        {/* Tabla de resultados */}
-        <div className="table-responsive custom-table">
-          <table className="table table-hover">
-            <thead className="table-header">
+        <div className="table-responsive">
+          <table className="table table-bordered table-hover text-center align-middle">
+            <thead className="table-light">
               <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Fecha</th>
-                <th scope="col">Entrada</th>
-                <th scope="col">Salida</th>
-                <th scope="col">Persona</th>
-                <th scope="col">Cargo</th>
-                <th scope="col">Observaciones</th>
+                <th>Documento</th>
+                <th>Fecha</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Persona</th>
+                <th>Cargo</th>
+                <th>Tipo vehículo</th>
+                <th>Placa</th>
+                <th>Tipo elemento</th>
+                <th>Serial</th>
               </tr>
             </thead>
             <tbody>
-               {resultados.length > 0 ? (
-                 resultados.map((registro, index) => {
-                  const [fecha, horaCompleta] = registro.fecha_hora_ingreso
-                    ? registro.fecha_hora_ingreso.split(',')
-                    : ['-', '-'];
-                  const hora = horaCompleta
-                    ? horaCompleta.trim().split(':').slice(0, 2).join(':') + ' ' + horaCompleta.trim().slice(-4)
-                    : '-';
-
-                  return (
-                    <tr key={index} className="table-row">
-                     <td>{registro.numero_documento}</td>
-                     <td>{fecha}</td>
-                     <td>{hora}</td>
-                     <td>
-                         {registro.fecha_hora_salida && registro.fecha_hora_salida.includes(',')
-                          ? registro.fecha_hora_salida.split(',')[1].trim()
-                         : 'Pendiente'}
-                     </td>
-                     <td>{registro.nombre_completo}</td>
-                     <td>{registro.tipo_rol}</td>
-                     <td>{registro.observaciones || '-'}</td>
-                   </tr>
-                 );
-              })
-            ) : (
-                 <tr>
-                   <td colSpan="7" className="text-center py-4 text-muted">
-                      No se encontraron registros
-                   </td>
-                 </tr>
+              {resultados.length ? resultados.map((r, i) => {
+                const [fecha, horaIngreso] = r.fecha_hora_ingreso?.split(',') || ['-', '-'];
+                const horaSalida = r.fecha_hora_salida?.split(',')[1]?.trim() || 'Pendiente';
+                return (
+                  <tr key={i}>
+                    <td>{r.numero_documento}</td>
+                    <td>{fecha}</td>
+                    <td>{horaIngreso}</td>
+                    <td>{horaSalida}</td>
+                    <td>{r.nombre_completo}</td>
+                    <td>{r.tipo_rol}</td>
+                    <td>{r.tipo_vehiculo || '-'}</td>
+                    <td>{r.placa || '-'}</td>
+                    <td>{r.tipo_elemento || '-'}</td>
+                    <td>{r.serial || '-'}</td>
+                  </tr>
+                );
+              }) : (
+                <tr><td colSpan="10" className="py-4 text-muted">No se encontraron registros</td></tr>
               )}
-           </tbody>
+            </tbody>
           </table>
         </div>
       </Card>

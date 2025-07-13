@@ -21,50 +21,37 @@ const RegistrosFormComponent = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
-  // Agrega función para verificar si la persona existe
   const checkPersonExists = async (documento) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/persona/documento/${documento}`);
-      const data = await response.json(); // Parse JSON even for 404 response
-
-      // Manejo de error 404 
-      if (response.status === 404) {
+      const response = await api.get(`/persona/documento/${documento}`);
+      return response.data.persona;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
         console.log('Persona no encontrada, mostrando modal...');
         setShowModal(true);
-        return null;
+      } else {
+        console.error('Error en checkPersonExists:', error);
+        setAlert({
+          show: true,
+          type: 'danger',
+          message: 'Error al verificar el documento. Por favor, intente nuevamente.'
+        });
       }
-
-      // Manejo de otros errores
-      if (!response.ok) {
-        throw new Error(`Error al verificar el documento: ${data.message || response.statusText}`);
-      }
-
-      return data.persona;
-
-    } catch (error) {
-      console.error('Error en checkPersonExists:', error);
-      setAlert({
-        show: true,
-        type: 'danger',
-        message: 'Error al verificar el documento. Por favor, intente nuevamente.'
-      });
       return null;
     }
   };
 
-  // Agrega función para manejar la redirección de registro
   const handleRegistrarPersona = () => {
-    setShowModal(false); // Cerrar modal antes de navegar
-    navigate('/personas', { 
+    setShowModal(false);
+    navigate('/personas', {
       state: { documento },
-      replace: false // Permitir volver atrás
+      replace: false
     });
   };
 
-  // Modificar handleSubmit para incluir validación
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setAlert({ show: false }); // Limpiar cualquier alerta anterior
+    setAlert({ show: false });
 
     try {
       if (!documento) {
@@ -76,30 +63,23 @@ const RegistrosFormComponent = () => {
         return;
       }
 
-      console.log('Verificando documento:', documento);
       const person = await checkPersonExists(documento);
-      
-      if (!person) {
-        console.log('Persona no encontrada');
-        return; // Modal will be shown by checkPersonExists
-      }
+      if (!person) return;
 
-      // Preparar datos para el registro
       const registroData = {
         persona_id: person.id,
         tipo_movimiento: tipoAcceso,
         fecha_hora: new Date().toISOString()
       };
 
-      // Si incluye vehículo, agregar datos del vehículo
       if (incluyeVehiculo && tipoVehiculo && placaVehiculo) {
         registroData.vehiculo = {
           tipo_vehiculo: tipoVehiculo,
-          placa: placaVehiculo
+          placa: placaVehiculo,
+          persona_id: person.id 
         };
       }
 
-      // Si incluye elemento, agregar datos del elemento
       if (incluyeElemento && tipoElemento && serial) {
         registroData.elemento = {
           tipo_elemento: tipoElemento,
@@ -107,20 +87,7 @@ const RegistrosFormComponent = () => {
         };
       }
 
-      // Enviar registro al backend
-      const response = await fetch('http://localhost:4000/api/control-acceso', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registroData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al guardar el registro');
-      }
-
-      const data = await response.json();
+      await api.post('/control-acceso', registroData);
 
       setAlert({
         show: true,
@@ -154,12 +121,18 @@ const RegistrosFormComponent = () => {
         {alert.show && <AlertComponent type={alert.type} message={alert.message} />}
 
         <form onSubmit={handleSubmit}>
-          <InputField
+        <InputField
             label="Número de documento"
             type="text"
             placeholder="Ej: 1234567890"
             value={documento}
-            onChange={(e) => setDocumento(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+            
+              if (/^\d*$/.test(value)) {
+                setDocumento(value);
+              }
+            }}    
           />
 
           <SelectDropdown
@@ -172,7 +145,6 @@ const RegistrosFormComponent = () => {
             onChange={(e) => setTipoAcceso(e.target.value)}
           />
 
-          {/* Check vehiculo */}
           <div className="form-check mt-3">
             <input
               className="form-check-input"
@@ -204,12 +176,17 @@ const RegistrosFormComponent = () => {
                 type="text"
                 placeholder="Ej: ABC123"
                 value={placaVehiculo}
-                onChange={(e) => setPlacaVehiculo(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase();
+                  
+                  if (/^[A-Z]{0,3}[0-9]{0,3}$/.test(value) && value.length <= 6) {
+                    setPlacaVehiculo(value);
+                  }
+                }}
               />
             </>
           )}
 
-          {/* Check elemento */}
           <div className="form-check mt-2">
             <input
               className="form-check-input"
@@ -248,7 +225,6 @@ const RegistrosFormComponent = () => {
         </form>
       </Card>
 
-      {/* Modal para persona no encontrada */}
       <Modal 
         show={showModal} 
         onClose={() => setShowModal(false)}
