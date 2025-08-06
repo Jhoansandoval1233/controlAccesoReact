@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Card from './ui/Card';
 import InputField from './ui/InputField';
 import Button from './ui/Button';
@@ -11,7 +11,6 @@ export default function RestablecerContrasena() {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
 
-  // 💡 Cambiar nombres para coincidir con backend
   const [form, setForm] = useState({
     numero_documento: '',
     nombre_completo: '',
@@ -23,35 +22,60 @@ export default function RestablecerContrasena() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setAlert({ show: false });
+  e.preventDefault();
+  setLoading(true);
+  setAlert({ show: false });
 
-    try {
-      const response = await api.put('/usuario/restablecer', form);
-      console.log(response.data);
-      setAlert({
-        show: true,
-        type: 'success',
-        message: 'Contraseña actualizada exitosamente',
-      });
+  try {
+    // Definir formData con los campos correctos
+    const formData = {
+      documento: form.numero_documento,
+      nombre: form.nombre_completo,
+      nuevaContrasena: form.nueva_contrasena
+       
+    };
 
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-    } catch (err) {
-      console.error('Error al restablecer contraseña:', err);
-      const message =
-        err.response?.data?.message || 'Error al conectar con el servidor';
-      setAlert({
-        show: true,
-        type: 'danger',
-        message,
-      });
-    } finally {
-      setLoading(false);
+    // Log de la petición
+    console.log('Intentando restablecer contraseña:', {
+      url: '/usuario/restablecer-contrasena',
+      data: formData
+
+   
+    });
+
+    const response = await api.post('/usuario/restablecer-contrasena', formData);
+    
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Error al restablecer contraseña');
     }
-  };
+
+    setAlert({
+      show: true,
+      type: 'success',
+      message: response.data.message || 'Contraseña actualizada exitosamente'
+    });
+
+    setTimeout(() => navigate('/login'), 2000);
+
+  } catch (err) {
+    console.error('Error en restablecimiento:', {
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      data: err.response?.data,
+      message: err.message
+    });
+
+    setAlert({
+      show: true,
+      type: 'danger',
+      message: err.response?.data?.message || 
+               'Error al conectar con el servidor. Por favor, intente más tarde.'
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="container mt-5" style={{ maxWidth: '400px' }}>
@@ -66,9 +90,21 @@ export default function RestablecerContrasena() {
             name="numero_documento"
             type="text"
             value={form.numero_documento}
-            onChange={handleChange}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, '');
+              handleChange({
+                ...e,
+                target: {
+                  ...e.target,
+                  value,
+                  name: e.target.name
+                }
+              });
+            }}
             required
             disabled={loading}
+            pattern="[0-9]*"
+            maxLength="20"
           />
 
           <InputField
@@ -96,9 +132,9 @@ export default function RestablecerContrasena() {
           </Button>
 
           <div className="text-center mt-3">
-            <a href="/" className="text-decoration-none">
+            <Link to="/" className="text-decoration-none">
               Volver al login
-            </a>
+            </Link>
           </div>
         </form>
       </Card>

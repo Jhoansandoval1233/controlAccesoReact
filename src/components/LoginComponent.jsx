@@ -131,7 +131,7 @@ const LoginComponent = () => {
           </Button>
 
           <div className="d-flex justify-content-between mt-3">
-            <Link to="/forgot-password" className="text-decoration-none">
+            <Link to="/restablecer-contrasena" className="text-decoration-none">
               ¿Olvidó contraseña?
             </Link>
             <Link to="/register" className="text-decoration-none">

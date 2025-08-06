@@ -39,19 +39,22 @@ const AppRouter = () => {
 
   return (
     <Router>
-      {/* NavBar solo aparece una vez autenticado */}
-      {isAuthenticated && <NavbarComponent />}
-
+      <NavbarComponent />
       <div className="container mt-4">
         <Routes>
+          {/* Rutas públicas - NO necesitan ProtectedRoute */}
           <Route path="/login" element={<LoginComponent />} />
+          <Route path="/register" element={<UsuariosRegistro />} />
+          <Route path="/restablecer-contrasena" element={<RestablecerContraseña />} />
+          
+          {/* Ruta raíz con redirección */}
           <Route path="/" element={
             isAuthenticated ? 
             <Navigate to="/registros" /> : 
             <Navigate to="/login" />
           } />
           
-          {/* Protected Routes */}
+          {/* SOLO estas rutas deben estar protegidas */}
           <Route path="/registros" element={
             <ProtectedRoute>
               <RegistrosFormComponent />
@@ -67,12 +70,9 @@ const AppRouter = () => {
               <ConsultasComponent />
             </ProtectedRoute>
           } />
-          <Route path="/register" element={<UsuariosRegistro />} />
-          <Route path="/forgot-password" element={<RestablecerContraseña />} />
         </Routes>
       </div>
-
-      {isAuthenticated && <FooterComponent />}
+      <FooterComponent />
     </Router>
   );
 };
