@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+
 import InputField from './ui/InputField';
 import AlertComponent from './AlertComponent';
 import Button from './ui/Button';
@@ -10,6 +10,7 @@ import api from '../api/api';
 const LoginComponent = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);  // Agregar este estado
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const LoginComponent = () => {
         return;
       }
 
-      const response = await axios.post('http://localhost:4000/api/usuario/login', {
+      const response = await api.post('http://localhost:4000/api/usuario/login', {
         email,
         password
       });
@@ -90,14 +91,36 @@ const LoginComponent = () => {
             disabled={loading}
           />
 
-          <InputField
-            label="Contraseña"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
-          />
+          <div className="position-relative">
+            <InputField
+              label="Contraseña"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+            />
+            <button
+              type="button"
+              className="btn btn-link position-absolute"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 1,
+                border: 'none',
+                background: 'transparent',
+                padding: '0 8px',
+                marginTop: '20px'  
+              }}
+            >
+              {showPassword ? 
+                <i className="bi bi-eye-slash"></i> : 
+                <i className="bi bi-eye"></i>
+              }
+            </button>
+          </div>
 
           <Button 
             type="submit" 
@@ -108,7 +131,7 @@ const LoginComponent = () => {
           </Button>
 
           <div className="d-flex justify-content-between mt-3">
-            <Link to="/forgot-password" className="text-decoration-none">
+            <Link to="/restablecer-contrasena" className="text-decoration-none">
               ¿Olvidó contraseña?
             </Link>
             <Link to="/register" className="text-decoration-none">

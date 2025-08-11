@@ -37,96 +37,62 @@ const PersonasComponent = () => {
     setAlert({ show: false });
 
     try {
-      // Validar campos requeridos
       const requiredFields = ['nombre', 'apellido', 'tipoDocumento', 'numeroID', 'tipoRol'];
-      const emptyFields = requiredFields.filter(field => !formData[field]);
+      const emptyFields = requiredFields.filter(field => !formData[field].trim());
 
       if (emptyFields.length > 0) {
         setAlert({
           show: true,
           type: 'danger',
-          message: 'Por favor complete todos los campos requeridos'
+          message: `Por favor complete los campos requeridos: ${emptyFields.join(', ')}`
         });
         setLoading(false);
         return;
       }
 
-      // Preparar datos para enviar al backend
       const personaData = {
-        nombre: formData.nombre,
-        apellido: formData.apellido,
+        nombre: formData.nombre.trim(),
+        apellido: formData.apellido.trim(),
         tipo_documento: formData.tipoDocumento,
-        numero_documento: formData.numeroID,
-        telefono: formData.telefono || null,
-        correo: formData.correo || null,
-        tipo_rol: formData.tipoRol  
+        numero_documento: formData.numeroID.trim(),
+        telefono: formData.telefono.trim() || null,
+        correo: formData.correo.trim() || null,
+        tipo_rol: formData.tipoRol
       };
 
-      console.log('Enviando datos:', personaData); // Para debugging
-
-      // Enviar datos de persona
-      const response = await fetch('http://localhost:4000/api/persona', {
-        method: 'POST',
+      console.log("Enviando persona:", personaData);
+      console.log('Datos a enviar:', personaData);
+      const response = await api.post('/persona', personaData, {
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(personaData)
+          'Content-Type': 'application/json'
+        }
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al registrar persona');
-      }
-
+      const data = response.data;
       const personaId = data.id;
 
-      // Manejar registro de vehículo si existe
       if (formData.registrarVehiculo && formData.tipoVehiculo && formData.placa) {
-        const vehiculoResponse = await fetch('http://localhost:4000/api/vehiculo', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            persona_id: personaId,
-            tipo_vehiculo: formData.tipoVehiculo,
-            placa: formData.placa
-          })
+        await api.post('/vehiculo', {
+          persona_id: personaId,
+          tipo_vehiculo: formData.tipoVehiculo,
+          placa: formData.placa.trim()
         });
-
-        if (!vehiculoResponse.ok) {
-          console.error('Error al registrar vehículo');
-        }
       }
 
-      // Manejar registro de elemento si existe
       if (formData.registrarElemento && formData.tipoElemento && formData.serialElemento) {
-        const elementoResponse = await fetch('http://localhost:4000/api/elemento', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            persona_id: personaId,
-            tipo_elemento: formData.tipoElemento,
-            serial: formData.serialElemento
-          })
+        await api.post('/elemento', {
+          persona_id: personaId,
+          tipo_elemento: formData.tipoElemento.trim(),
+          serial: formData.serialElemento.trim()
         });
-
-        if (!elementoResponse.ok) {
-          console.error('Error al registrar elemento');
-        }
       }
 
-      // Mostrar mensaje de éxito
       setAlert({
         show: true,
         type: 'success',
         message: 'Registro completado exitosamente'
       });
 
-      // Limpiar formulario
       setFormData({
         nombre: "",
         apellido: "",
@@ -148,7 +114,7 @@ const PersonasComponent = () => {
       setAlert({
         show: true,
         type: 'danger',
-        message: error.message || 'Error al procesar el registro'
+        message: error.response?.data?.message || error.response?.data?.error || 'Error al procesar el registro'
       });
     } finally {
       setLoading(false);
@@ -165,7 +131,7 @@ const PersonasComponent = () => {
             onClose={() => setAlert({ show: false })} 
           />
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
             <div className="col-12">
@@ -295,7 +261,7 @@ const PersonasComponent = () => {
                 Registrar elemento
               </label>
             </div>
-            
+
             {formData.registrarElemento && (
               <>
                 <div className="col-12">

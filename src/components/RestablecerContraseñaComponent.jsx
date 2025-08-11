@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Card from './ui/Card';
 import InputField from './ui/InputField';
 import Button from './ui/Button';
@@ -10,57 +10,72 @@ export default function RestablecerContrasena() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+
   const [form, setForm] = useState({
-    documento: '',
-    nombre: '',
-    nuevaContrasena: ''
+    numero_documento: '',
+    nombre_completo: '',
+    nueva_contrasena: ''
   });
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setLoading(true);
-    setAlert({ show: false });
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setAlert({ show: false });
 
-    try {
-      const res = await fetch('http://localhost:4000/api/usuario/restablecer', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
+  try {
+    // Definir formData con los campos correctos
+    const formData = {
+      documento: form.numero_documento,
+      nombre: form.nombre_completo,
+      nuevaContrasena: form.nueva_contrasena
+       
+    };
 
-      const data = await res.json();
-      
-      if (res.ok) {
-        setAlert({
-          show: true,
-          type: 'success',
-          message: 'Contraseña actualizada exitosamente'
-        });
-        
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
-      } else {
-        setAlert({
-          show: true,
-          type: 'danger',
-          message: data.message
-        });
-      }
-    } catch (err) {
-      setAlert({
-        show: true,
-        type: 'danger',
-        message: 'Error al conectar con el servidor'
-      });
-    } finally {
-      setLoading(false);
+    // Log de la petición
+    console.log('Intentando restablecer contraseña:', {
+      url: '/usuario/restablecer-contrasena',
+      data: formData
+
+   
+    });
+
+    const response = await api.post('/usuario/restablecer-contrasena', formData);
+    
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Error al restablecer contraseña');
     }
-  };
+
+    setAlert({
+      show: true,
+      type: 'success',
+      message: response.data.message || 'Contraseña actualizada exitosamente'
+    });
+
+    setTimeout(() => navigate('/login'), 2000);
+
+  } catch (err) {
+    console.error('Error en restablecimiento:', {
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      data: err.response?.data,
+      message: err.message
+    });
+
+    setAlert({
+      show: true,
+      type: 'danger',
+      message: err.response?.data?.message || 
+               'Error al conectar con el servidor. Por favor, intente más tarde.'
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="container mt-5" style={{ maxWidth: '400px' }}>
@@ -72,19 +87,31 @@ export default function RestablecerContrasena() {
         <form onSubmit={handleSubmit}>
           <InputField
             label="Número de documento"
-            name="documento"
+            name="numero_documento"
             type="text"
-            value={form.documento}
-            onChange={handleChange}
+            value={form.numero_documento}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, '');
+              handleChange({
+                ...e,
+                target: {
+                  ...e.target,
+                  value,
+                  name: e.target.name
+                }
+              });
+            }}
             required
             disabled={loading}
+            pattern="[0-9]*"
+            maxLength="20"
           />
 
           <InputField
             label="Nombre completo"
-            name="nombre"
+            name="nombre_completo"
             type="text"
-            value={form.nombre}
+            value={form.nombre_completo}
             onChange={handleChange}
             required
             disabled={loading}
@@ -92,26 +119,22 @@ export default function RestablecerContrasena() {
 
           <InputField
             label="Nueva contraseña"
-            name="nuevaContrasena"
+            name="nueva_contrasena"
             type="password"
-            value={form.nuevaContrasena}
+            value={form.nueva_contrasena}
             onChange={handleChange}
             required
             disabled={loading}
           />
 
-          <Button
-            type="submit"
-            variant="success"
-            disabled={loading}
-          >
+          <Button type="submit" variant="success" disabled={loading}>
             {loading ? 'Procesando...' : 'Restablecer Contraseña'}
           </Button>
 
           <div className="text-center mt-3">
-            <a href="/" className="text-decoration-none">
+            <Link to="/" className="text-decoration-none">
               Volver al login
-            </a>
+            </Link>
           </div>
         </form>
       </Card>

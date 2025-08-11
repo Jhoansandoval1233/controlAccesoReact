@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+//import axios from 'axios';
 import InputField from './ui/InputField';
 import AlertComponent from './AlertComponent';
 import Button from './ui/Button';
@@ -48,7 +48,7 @@ const UsuariosRegistro = () => {
         return;
       }
 
-      const response = await axios.post('http://localhost:4000/api/usuario/registro', formData);
+      const response = await api.post('http://localhost:4000/api/usuario/registro', formData);
 
       if (response.data.success) {
         setAlert({
@@ -78,7 +78,8 @@ const UsuariosRegistro = () => {
     <div className="container mt-5" style={{ maxWidth: '500px' }}>
       <Card title="Registro de usuario">
         {alert.show && (
-          <AlertComponent type={alert.type} message={alert.message} />
+          <AlertComponent type={alert.type} message={alert.message}
+          onClose={() => setAlert({ show: false })}  />
         )}
 
         <form onSubmit={handleSubmit}>
