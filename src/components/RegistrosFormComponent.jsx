@@ -17,6 +17,7 @@ const RegistrosFormComponent = () => {
   const [incluyeElemento, setIncluyeElemento] = useState(false);
   const [tipoElemento, setTipoElemento] = useState('');
   const [serial, setSerial] = useState('');
+  const [observaciones, setObservaciones] = useState(''); // NUEVO estado para observaciones
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
@@ -69,7 +70,8 @@ const RegistrosFormComponent = () => {
       const registroData = {
         persona_id: person.id,
         tipo_movimiento: tipoAcceso,
-        fecha_hora: new Date().toISOString()
+        fecha_hora: new Date().toISOString(),
+        observaciones: observaciones.trim(), // INCLUIMOS observaciones aquí
       };
 
       if (incluyeVehiculo && tipoVehiculo && placaVehiculo) {
@@ -104,6 +106,7 @@ const RegistrosFormComponent = () => {
       setIncluyeElemento(false);
       setTipoElemento('');
       setSerial('');
+      setObservaciones(''); // LIMPIAR campo observaciones
 
     } catch (error) {
       console.error('Error en el envío:', error);
@@ -121,14 +124,13 @@ const RegistrosFormComponent = () => {
         {alert.show && <AlertComponent type={alert.type} message={alert.message} />}
 
         <form onSubmit={handleSubmit}>
-        <InputField
+          <InputField
             label="Número de documento"
             type="text"
             placeholder="Ej: 1234567890"
             value={documento}
             onChange={(e) => {
               const value = e.target.value;
-            
               if (/^\d*$/.test(value)) {
                 setDocumento(value);
               }
@@ -178,8 +180,7 @@ const RegistrosFormComponent = () => {
                 value={placaVehiculo}
                 onChange={(e) => {
                   const value = e.target.value.toUpperCase();
-                  
-                  if (/^[A-Z]{0,3}[0-9]{0,3}$/.test(value) && value.length <= 6) {
+                  if (/^[A-Z]{0,3}[0-9]{0,3}[A-Z]{0,1}$/.test(value) && value.length <= 6) {
                     setPlacaVehiculo(value);
                   }
                 }}
@@ -219,7 +220,16 @@ const RegistrosFormComponent = () => {
             </>
           )}
 
-          <Button type="submit" variant="success">
+          {/* NUEVO CAMPO OBSERVACIONES */}
+          <InputField
+            label="Observaciones"
+            type="text"
+            placeholder="Escribe alguna observación..."
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+          />
+
+          <Button type="submit" variant="success" className="mt-3">
             Guardar Registro
           </Button>
         </form>

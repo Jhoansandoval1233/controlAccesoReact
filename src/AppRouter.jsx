@@ -48,11 +48,7 @@ const AppRouter = () => {
           <Route path="/restablecer-contrasena" element={<RestablecerContraseña />} />
           
           {/* Ruta raíz con redirección */}
-          <Route path="/" element={
-            isAuthenticated ? 
-            <Navigate to="/registros" /> : 
-            <Navigate to="/login" />
-          } />
+          <Route path="/" element={<Navigate to="/login" />} />
           
           {/* SOLO estas rutas deben estar protegidas */}
           <Route path="/registros" element={

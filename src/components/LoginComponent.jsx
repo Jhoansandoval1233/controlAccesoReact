@@ -10,7 +10,7 @@ import api from '../api/api';
 const LoginComponent = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);  // Agregar este estado
+  const [showPassword, setShowPassword] = useState(false);  
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -48,6 +48,8 @@ const LoginComponent = () => {
         localStorage.setItem('authenticated', 'true');
         localStorage.setItem('userToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
+        
+        window.dispatchEvent(new Event("storage"));
 
         // Mostrar mensaje de éxito antes de redirigir
         setAlert({

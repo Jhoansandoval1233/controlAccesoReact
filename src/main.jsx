@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import AppRouter from './AppRouter.jsx'
 import './styles.css';
 
+localStorage.removeItem("authenticated");
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
